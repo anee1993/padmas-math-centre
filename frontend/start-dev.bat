@@ -1,0 +1,3 @@
+@echo off
+echo Starting development server...
+"C:\Program Files\nodejs\npm.cmd" run dev

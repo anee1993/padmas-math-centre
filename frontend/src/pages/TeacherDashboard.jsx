@@ -1,0 +1,596 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
+
+const TeacherDashboard = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('pending');
+  const [pendingStudents, setPendingStudents] = useState([]);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(6);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [editingClass, setEditingClass] = useState(null);
+  const [meetingLink, setMeetingLink] = useState('');
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [pendingRes, enrolledRes, classroomsRes] = await Promise.all([
+        axios.get('/admin/pending-registrations'),
+        axios.get('/admin/enrolled-students'),
+        axios.get('/virtual-classroom/all')
+      ]);
+      setPendingStudents(pendingRes.data);
+      setEnrolledStudents(enrolledRes.data);
+      setClassrooms(classroomsRes.data);
+    } catch (error) {
+      setMessage('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (studentId) => {
+    try {
+      await axios.put('/admin/approve-registration', { studentId });
+      setMessage('Student approved successfully');
+      fetchData();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to approve student');
+    }
+  };
+
+  const handleReject = async (studentId) => {
+    try {
+      await axios.put('/admin/reject-registration', { 
+        studentId,
+        reason: 'Rejected by teacher'
+      });
+      setMessage('Student rejected');
+      fetchData();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to reject student');
+    }
+  };
+
+  const getStudentsByClass = (classGrade) => {
+    return enrolledStudents.filter(student => student.classGrade === classGrade);
+  };
+
+  const getClassCount = (classGrade) => {
+    return getStudentsByClass(classGrade).length;
+  };
+
+  const joinClassroom = (classGrade) => {
+    navigate(`/virtual-classroom/${classGrade}`);
+  };
+
+  const startEditingLink = (classroom) => {
+    setEditingClass(classroom.classGrade);
+    setMeetingLink(classroom.meetingLink || '');
+  };
+
+  const cancelEditing = () => {
+    setEditingClass(null);
+    setMeetingLink('');
+  };
+
+  const saveMeetingLink = async (classGrade) => {
+    try {
+      await axios.put('/virtual-classroom/update-link', {
+        classGrade,
+        meetingLink
+      });
+      setMessage('Meeting link updated successfully');
+      setEditingClass(null);
+      setMeetingLink('');
+      fetchData();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Failed to update meeting link');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <nav className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-4 shadow-lg">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm">{user?.email} ({user?.role})</span>
+            <button
+              onClick={logout}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded transition backdrop-blur-sm"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-8 shadow-lg">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-4xl font-bold mb-2">
+                Welcome, {user?.fullName || 'Teacher'}! 👋
+              </h2>
+              <p className="text-lg opacity-90">
+                Ready to inspire young minds today?
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{pendingStudents.length}</p>
+                <p className="text-sm opacity-90">Pending</p>
+              </div>
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{enrolledStudents.length}</p>
+                <p className="text-sm opacity-90">Students</p>
+              </div>
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">5</p>
+                <p className="text-sm opacity-90">Classes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto p-6">
+        {message && (
+          <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded">
+            {message}
+          </div>
+        )}
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow-md mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex -mb-px">
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'pending'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Pending Requests
+                {pendingStudents.length > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {pendingStudents.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('enrolled')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'enrolled'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Enrolled Students
+                <span className="ml-2 text-xs text-gray-500">
+                  ({enrolledStudents.length})
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('classrooms')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'classrooms'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Virtual Classrooms
+              </button>
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'assignments'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Assignments
+              </button>
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'materials'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Learning Materials
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {loading ? (
+              <p className="text-gray-600">Loading...</p>
+            ) : activeTab === 'pending' ? (
+              /* Pending Registrations Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Pending Student Registrations
+                </h2>
+                {pendingStudents.length === 0 ? (
+                  <p className="text-gray-600">No pending registrations</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">DOB</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Gender</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Class</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Registered</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {pendingStudents.map((student) => (
+                          <tr key={student.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900">{student.fullName}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.dateOfBirth}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.gender}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">Class {student.classGrade}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {new Date(student.registeredAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleApprove(student.id)}
+                                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleReject(student.id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'classrooms' ? (
+              /* Virtual Classrooms Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Virtual Classrooms - Meeting Links
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Add Google Meet (or any video conferencing) links for each class. Students will use these links to join your classes.
+                </p>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {classrooms.map((classroom) => (
+                    <div
+                      key={classroom.id}
+                      className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-6 border-2 border-indigo-200"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-800">
+                            Class {classroom.classGrade} - Mathematics
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Students enrolled: {getClassCount(classroom.classGrade)}
+                          </p>
+                        </div>
+                        <div className="bg-indigo-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold">
+                          {classroom.classGrade}
+                        </div>
+                      </div>
+                      
+                      {editingClass === classroom.classGrade ? (
+                        <div className="space-y-3">
+                          <input
+                            type="url"
+                            value={meetingLink}
+                            onChange={(e) => setMeetingLink(e.target.value)}
+                            placeholder="Paste Google Meet link here (e.g., https://meet.google.com/xxx-xxxx-xxx)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => saveMeetingLink(classroom.classGrade)}
+                              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-semibold transition"
+                            >
+                              Save Link
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-semibold transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {classroom.hasLink ? (
+                            <div className="bg-white p-3 rounded border border-gray-200">
+                              <p className="text-sm text-gray-600 mb-1">Meeting Link:</p>
+                              <a
+                                href={classroom.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm break-all"
+                              >
+                                {classroom.meetingLink}
+                              </a>
+                            </div>
+                          ) : (
+                            <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                              <p className="text-sm text-yellow-800">
+                                No meeting link set. Click "Add/Edit Link" to add one.
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => startEditingLink(classroom)}
+                              className="bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold transition"
+                            >
+                              {classroom.hasLink ? 'Edit Link' : 'Add Link'}
+                            </button>
+                            {classroom.hasLink && (
+                              <a
+                                href={classroom.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-semibold transition inline-flex items-center gap-2"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Join Meeting
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 rounded border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>How to use:</strong>
+                  </p>
+                  <ol className="text-sm text-blue-800 mt-2 ml-4 list-decimal space-y-1">
+                    <li>Create a Google Meet link (or use Zoom, Teams, etc.)</li>
+                    <li>Click "Add Link" for each class and paste the meeting link</li>
+                    <li>Students will see the link on their dashboard and can join directly</li>
+                    <li>You can update the link anytime by clicking "Edit Link"</li>
+                  </ol>
+                </div>
+              </div>
+            ) : activeTab === 'assignments' ? (
+              /* Assignments Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Assignment Management
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Create and manage assignments for your students. View submissions and track progress.
+                </p>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div 
+                    onClick={() => navigate('/assignments')}
+                    className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border-2 border-blue-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Quick Actions</p>
+                        <h3 className="text-lg font-bold text-gray-800">Manage Assignments</h3>
+                      </div>
+                      <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      View all assignments, edit details, and manage assignment lifecycle.
+                    </p>
+                    <div className="mt-3 flex items-center text-blue-600 text-sm font-medium">
+                      <span>Click to manage</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => navigate('/submissions')}
+                    className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 border-2 border-green-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Track Progress</p>
+                        <h3 className="text-lg font-bold text-gray-800">View Submissions</h3>
+                      </div>
+                      <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      Review student submissions organized by class and assignment.
+                    </p>
+                    <div className="mt-3 flex items-center text-green-600 text-sm font-medium">
+                      <span>Click to view</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => navigate('/assignments/create')}
+                    className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border-2 border-purple-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Quick Create</p>
+                        <h3 className="text-lg font-bold text-gray-800">New Assignment</h3>
+                      </div>
+                      <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      Quickly create a new assignment with file attachments and due dates.
+                    </p>
+                    <div className="mt-3 flex items-center text-purple-600 text-sm font-medium">
+                      <span>Click to create</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-amber-50 rounded border border-amber-200">
+                  <p className="text-sm text-amber-800">
+                    <strong>💡 Tip:</strong> Click on any card above for quick access to manage assignments, view submissions, or create new assignments.
+                  </p>
+                </div>
+              </div>
+            ) : activeTab === 'materials' ? (
+              /* Learning Materials Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Learning Materials Management
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Upload study materials, notes, and resources for your students. Materials are organized by class.
+                </p>
+
+                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg p-6 border-2 border-teal-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  onClick={() => navigate('/learning-materials')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Manage Learning Materials</h3>
+                      <p className="text-gray-600 mb-3">
+                        Upload PDF/Word documents, add external links, and organize materials by class
+                      </p>
+                      <div className="flex items-center text-teal-600 text-sm font-medium">
+                        <span>Click to manage materials</span>
+                        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <svg className="w-16 h-16 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-amber-50 rounded border border-amber-200">
+                  <p className="text-sm text-amber-800">
+                    <strong>📚 About Learning Materials:</strong>
+                  </p>
+                  <ul className="text-sm text-amber-800 mt-2 ml-4 list-disc space-y-1">
+                    <li>Upload study notes, practice problems, reference materials</li>
+                    <li>Supports PDF and Word documents (max 10MB)</li>
+                    <li>Can also add links to external resources (Google Drive, YouTube, etc.)</li>
+                    <li>Students will see materials for their class only</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              /* Enrolled Students Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Enrolled Students by Class
+                </h2>
+
+                {/* Class Tabs */}
+                <div className="flex gap-2 mb-6 flex-wrap">
+                  {[6, 7, 8, 9, 10].map((grade) => (
+                    <button
+                      key={grade}
+                      onClick={() => setSelectedClass(grade)}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        selectedClass === grade
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      Class {grade}
+                      <span className="ml-2 text-xs">
+                        ({getClassCount(grade)})
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Students Table */}
+                {getStudentsByClass(selectedClass).length === 0 ? (
+                  <p className="text-gray-600">No students enrolled in Class {selectedClass}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">DOB</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Gender</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Approved On</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {getStudentsByClass(selectedClass).map((student) => (
+                          <tr key={student.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{student.fullName}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.dateOfBirth}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{student.gender}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {new Date(student.approvedAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TeacherDashboard;

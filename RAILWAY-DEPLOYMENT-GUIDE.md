@@ -28,13 +28,19 @@ This guide will help you deploy your Spring Boot backend to Railway.app for $5/m
 
 Click on your service → "Variables" tab → Add all these:
 
-**IMPORTANT:** Use your actual values from your local `.env` file!
+**IMPORTANT:** Use Supabase Session Pooler for reliable connection!
+
+To get the pooler connection string:
+1. Go to Supabase Dashboard → Project Settings → Database
+2. Click "Connection String" tab
+3. Change Method from "Direct connection" to "Session Pooler"
+4. Copy the connection string shown
 
 ```bash
-# Database Configuration
-DATABASE_URL=jdbc:postgresql://your-supabase-url:5432/postgres
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=your-database-password
+# Database Configuration (Using Supabase Session Pooler)
+DATABASE_URL=jdbc:postgresql://[POOLER-HOST].pooler.supabase.com:5432/postgres?sslmode=require
+DATABASE_USERNAME=postgres.[YOUR-PROJECT-REF]
+DATABASE_PASSWORD=[YOUR-DATABASE-PASSWORD]
 
 # JWT Configuration
 JWT_SECRET=your-jwt-secret-key
@@ -174,14 +180,20 @@ mvn clean package
 
 ### Can't Connect to Database
 
-**Verify:**
-- DATABASE_URL is correct
-- DATABASE_PASSWORD is correct
-- Supabase allows connections from Railway IPs
+**Error:** "Network unreachable" or "Connection refused"
 
-**Solution:**
-- Supabase allows all connections by default
-- Check Supabase dashboard for connection issues
+**Solution:** Use Supabase Session Pooler instead of direct connection!
+
+1. Go to Supabase Dashboard → Project Settings → Database
+2. Click "Connection String" → Change to "Session Pooler"
+3. Update Railway variables:
+   ```
+   DATABASE_URL=jdbc:postgresql://[POOLER-HOST].pooler.supabase.com:5432/postgres?sslmode=require
+   DATABASE_USERNAME=postgres.[YOUR-PROJECT-REF]
+   DATABASE_PASSWORD=[YOUR-PASSWORD]
+   ```
+4. The pooler host ends with `.pooler.supabase.com`
+5. Username includes your project reference (postgres.PROJECT_REF)
 
 ### CORS Errors
 

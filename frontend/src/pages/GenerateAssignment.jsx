@@ -91,13 +91,18 @@ const GenerateAssignment = () => {
     setPosting(true);
     
     try {
+      // Convert date string to LocalDateTime format (ISO 8601)
+      const dueDateObj = new Date(postFormData.dueDate);
+      dueDateObj.setHours(23, 59, 59); // Set to end of day
+      const dueDateISO = dueDateObj.toISOString();
+      
       const assignmentData = {
         title: postFormData.title,
         description: generatedContent,
         classGrade: formData.classGrade,
-        dueDate: postFormData.dueDate,
+        dueDate: dueDateISO,
         totalMarks: postFormData.totalMarks,
-        fileUrl: null
+        attachmentUrl: null
       };
 
       await axios.post('/assignments', assignmentData);
@@ -110,7 +115,11 @@ const GenerateAssignment = () => {
       }, 1000);
       
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to post assignment');
+      console.error('Error posting assignment:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Failed to post assignment. Please try again.';
+      alert(errorMessage);
     } finally {
       setPosting(false);
     }

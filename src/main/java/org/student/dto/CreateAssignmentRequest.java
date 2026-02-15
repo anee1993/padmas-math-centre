@@ -26,7 +26,7 @@ public class CreateAssignmentRequest {
     
     @NotNull(message = "Total marks is required")
     @Min(value = 1, message = "Total marks must be at least 1")
-    @Max(value = 100, message = "Total marks cannot exceed 100")
+    @Max(value = 200, message = "Total marks cannot exceed 200")
     private Integer totalMarks;
     
     private String attachmentUrl;

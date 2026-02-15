@@ -20,6 +20,16 @@ const TeacherDashboard = () => {
   const [blockStudentId, setBlockStudentId] = useState(null);
   const [blockReason, setBlockReason] = useState('');
   const [loadingQueries, setLoadingQueries] = useState(false);
+  const [timetables, setTimetables] = useState([]);
+  const [showTimetableForm, setShowTimetableForm] = useState(false);
+  const [editingTimetable, setEditingTimetable] = useState(null);
+  const [timetableForm, setTimetableForm] = useState({
+    classGrade: 6,
+    dayOfWeek: 'MONDAY',
+    startTime: '17:00',
+    endTime: '18:00',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -174,8 +184,71 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (activeTab === 'queries') {
       fetchQueries(selectedQueryClass);
+    } else if (activeTab === 'timetable') {
+      fetchTimetables();
     }
   }, [activeTab, selectedQueryClass]);
+
+  const fetchTimetables = async () => {
+    try {
+      const response = await axios.get('/timetable/all');
+      setTimetables(response.data);
+    } catch (error) {
+      setMessage('Failed to fetch timetables');
+    }
+  };
+
+  const handleCreateTimetable = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingTimetable) {
+        await axios.put(`/timetable/${editingTimetable}`, timetableForm);
+        setMessage('Timetable updated successfully');
+      } else {
+        await axios.post('/timetable', timetableForm);
+        setMessage('Timetable entry added successfully');
+      }
+      setShowTimetableForm(false);
+      setEditingTimetable(null);
+      setTimetableForm({
+        classGrade: 6,
+        dayOfWeek: 'MONDAY',
+        startTime: '17:00',
+        endTime: '18:00',
+        notes: ''
+      });
+      fetchTimetables();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to save timetable');
+    }
+  };
+
+  const handleEditTimetable = (timetable) => {
+    setEditingTimetable(timetable.id);
+    setTimetableForm({
+      classGrade: timetable.classGrade,
+      dayOfWeek: timetable.dayOfWeek,
+      startTime: timetable.startTime,
+      endTime: timetable.endTime,
+      notes: timetable.notes || ''
+    });
+    setShowTimetableForm(true);
+  };
+
+  const handleDeleteTimetable = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this timetable entry?')) {
+      return;
+    }
+    try {
+      await axios.delete(`/timetable/${id}`);
+      setMessage('Timetable entry deleted');
+      fetchTimetables();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Failed to delete timetable entry');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -302,6 +375,16 @@ const TeacherDashboard = () => {
                 }`}
               >
                 Queries & Discussions
+              </button>
+              <button
+                onClick={() => setActiveTab('timetable')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'timetable'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Timetable
               </button>
             </nav>
           </div>
@@ -807,6 +890,151 @@ const TeacherDashboard = () => {
                         </button>
                       </div>
                     </div>
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'timetable' ? (
+              /* Timetable Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Class Timetable Management
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Manage class schedules for all classes. Students will see their class timetable.
+                </p>
+
+                <button
+                  onClick={() => {
+                    setShowTimetableForm(!showTimetableForm);
+                    setEditingTimetable(null);
+                    setTimetableForm({
+                      classGrade: 6,
+                      dayOfWeek: 'MONDAY',
+                      startTime: '17:00',
+                      endTime: '18:00',
+                      notes: ''
+                    });
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded mb-6 transition"
+                >
+                  {showTimetableForm ? 'Cancel' : '+ Add Schedule'}
+                </button>
+
+                {showTimetableForm && (
+                  <form onSubmit={handleCreateTimetable} className="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Class</label>
+                        <select
+                          value={timetableForm.classGrade}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, classGrade: parseInt(e.target.value) })}
+                          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          required
+                        >
+                          {[6, 7, 8, 9, 10].map(grade => (
+                            <option key={grade} value={grade}>Class {grade}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Day</label>
+                        <select
+                          value={timetableForm.dayOfWeek}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, dayOfWeek: e.target.value })}
+                          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          required
+                        >
+                          <option value="MONDAY">Monday</option>
+                          <option value="TUESDAY">Tuesday</option>
+                          <option value="WEDNESDAY">Wednesday</option>
+                          <option value="THURSDAY">Thursday</option>
+                          <option value="FRIDAY">Friday</option>
+                          <option value="SATURDAY">Saturday</option>
+                          <option value="SUNDAY">Sunday</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Start Time</label>
+                        <input
+                          type="time"
+                          value={timetableForm.startTime}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, startTime: e.target.value })}
+                          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">End Time</label>
+                        <input
+                          type="time"
+                          value={timetableForm.endTime}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, endTime: e.target.value })}
+                          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-gray-700 font-medium mb-2">Notes (Optional)</label>
+                      <input
+                        type="text"
+                        value={timetableForm.notes}
+                        onChange={(e) => setTimetableForm({ ...timetableForm, notes: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="e.g., Algebra, Geometry, etc."
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition"
+                    >
+                      {editingTimetable ? 'Update Schedule' : 'Add Schedule'}
+                    </button>
+                  </form>
+                )}
+
+                {/* Timetable List */}
+                {timetables.length === 0 ? (
+                  <p className="text-gray-600">No timetable entries yet. Add schedules for your classes.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Class</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Day</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Time</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Notes</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {timetables.map((entry) => (
+                          <tr key={entry.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">Class {entry.classGrade}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{entry.dayOfWeek.charAt(0) + entry.dayOfWeek.slice(1).toLowerCase()}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{entry.startTime} - {entry.endTime}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{entry.notes || '-'}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleEditTimetable(entry)}
+                                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTimetable(entry.id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

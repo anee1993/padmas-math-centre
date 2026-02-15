@@ -15,6 +15,7 @@ import StudentMaterials from './pages/StudentMaterials';
 import ForgotPassword from './pages/ForgotPassword';
 import Queries from './pages/Queries';
 import QueryDetail from './pages/QueryDetail';
+import Timetable from './pages/Timetable';
 
 function App() {
   return (
@@ -110,6 +111,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <QueryDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/timetable"
+            element={
+              <ProtectedRoute requiredRole="STUDENT">
+                <Timetable />
               </ProtectedRoute>
             }
           />

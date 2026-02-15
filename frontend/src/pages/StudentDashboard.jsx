@@ -142,6 +142,14 @@ const StudentDashboard = () => {
               <h3 className="text-xl font-semibold mb-1">Queries & Discussions</h3>
               <p className="text-sm text-purple-100">Ask questions and discuss with classmates</p>
             </button>
+            <button
+              onClick={() => navigate('/timetable')}
+              className="bg-green-600 hover:bg-green-700 text-white p-6 rounded-lg transition text-left"
+            >
+              <div className="text-2xl mb-2">📅</div>
+              <h3 className="text-xl font-semibold mb-1">Class Timetable</h3>
+              <p className="text-sm text-green-100">View your weekly class schedule</p>
+            </button>
           </div>
         </div>
       </div>

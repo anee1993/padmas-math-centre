@@ -25,20 +25,30 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Create or update teacher account
-        User teacher = userRepository.findByEmail("teacher@mathtuition.com")
+        User teacher = userRepository.findByEmail("padmakrishnan1992@gmail.com")
             .orElse(null);
         
         if (teacher == null) {
-            // Create new teacher account
-            teacher = new User();
-            teacher.setEmail("teacher@mathtuition.com");
-            teacher.setFullName("A Padma");
-            teacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
-            teacher.setRole(User.Role.TEACHER);
-            teacher.setStatus(User.RegistrationStatus.APPROVED);
-            
-            userRepository.save(teacher);
-            System.out.println("Teacher account created: teacher@mathtuition.com / Teacher@123");
+            // Check if old email exists and update it
+            User oldTeacher = userRepository.findByEmail("teacher@mathtuition.com").orElse(null);
+            if (oldTeacher != null) {
+                // Update old teacher email to new email
+                oldTeacher.setEmail("padmakrishnan1992@gmail.com");
+                oldTeacher.setFullName("A Padma");
+                userRepository.save(oldTeacher);
+                System.out.println("Teacher email updated to: padmakrishnan1992@gmail.com");
+            } else {
+                // Create new teacher account
+                teacher = new User();
+                teacher.setEmail("padmakrishnan1992@gmail.com");
+                teacher.setFullName("A Padma");
+                teacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
+                teacher.setRole(User.Role.TEACHER);
+                teacher.setStatus(User.RegistrationStatus.APPROVED);
+                
+                userRepository.save(teacher);
+                System.out.println("Teacher account created: padmakrishnan1992@gmail.com / Teacher@123");
+            }
         } else if (teacher.getFullName() == null || teacher.getFullName().isEmpty()) {
             // Update existing teacher account with name
             teacher.setFullName("A Padma");

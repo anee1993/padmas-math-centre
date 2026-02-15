@@ -158,16 +158,23 @@ const AssignmentDetail = () => {
     setMessage('');
 
     try {
-      await axios.post('/late-submissions/request', {
+      const response = await axios.post('/late-submissions/request', {
         assignmentId: parseInt(id),
         reason: lateRequestReason
       });
+      console.log('Late submission request response:', response.data);
       setMessage('Late submission request sent successfully! Your teacher will review it.');
       setShowLateRequestForm(false);
       setLateRequestReason('');
       fetchData(); // Refresh to get the new request
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Failed to send request');
+      console.error('Late submission request error:', error);
+      console.error('Error response:', error.response);
+      const errorMsg = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      error.message || 
+                      'Failed to send request. Please try again.';
+      setMessage(errorMsg);
     } finally {
       setRequestingLate(false);
     }

@@ -134,6 +134,14 @@ const StudentDashboard = () => {
               <h3 className="text-xl font-semibold mb-1">Learning Materials</h3>
               <p className="text-sm text-teal-100">Access study materials and resources</p>
             </button>
+            <button
+              onClick={() => navigate('/queries')}
+              className="bg-purple-600 hover:bg-purple-700 text-white p-6 rounded-lg transition text-left"
+            >
+              <div className="text-2xl mb-2">💬</div>
+              <h3 className="text-xl font-semibold mb-1">Queries & Discussions</h3>
+              <p className="text-sm text-purple-100">Ask questions and discuss with classmates</p>
+            </button>
           </div>
         </div>
       </div>

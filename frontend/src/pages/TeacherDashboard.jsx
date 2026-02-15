@@ -15,6 +15,10 @@ const TeacherDashboard = () => {
   const [message, setMessage] = useState('');
   const [editingClass, setEditingClass] = useState(null);
   const [meetingLink, setMeetingLink] = useState('');
+  const [queries, setQueries] = useState([]);
+  const [selectedQueryClass, setSelectedQueryClass] = useState(6);
+  const [blockStudentId, setBlockStudentId] = useState(null);
+  const [blockReason, setBlockReason] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -114,6 +118,60 @@ const TeacherDashboard = () => {
       setMessage('Failed to update meeting link');
     }
   };
+
+  const fetchQueries = async (classGrade) => {
+    try {
+      const response = await axios.get(`/queries/class/${classGrade}`);
+      setQueries(response.data);
+    } catch (error) {
+      setMessage('Failed to fetch queries');
+    }
+  };
+
+  const handleDeleteQuery = async (queryId) => {
+    if (!window.confirm('Are you sure you want to delete this query? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`/queries/${queryId}`);
+      setMessage('Query deleted successfully');
+      fetchQueries(selectedQueryClass);
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Failed to delete query');
+    }
+  };
+
+  const handleBlockStudent = async () => {
+    if (!blockReason.trim()) {
+      setMessage('Please provide a reason for blocking');
+      return;
+    }
+
+    try {
+      await axios.post('/queries/block-student', {
+        studentId: blockStudentId,
+        reason: blockReason
+      });
+      setMessage('Student blocked successfully');
+      setBlockStudentId(null);
+      setBlockReason('');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to block student');
+    }
+  };
+
+  const viewQueryDetail = (queryId) => {
+    navigate(`/queries/${queryId}`);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'queries') {
+      fetchQueries(selectedQueryClass);
+    }
+  }, [activeTab, selectedQueryClass]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -230,6 +288,16 @@ const TeacherDashboard = () => {
                 }`}
               >
                 Learning Materials
+              </button>
+              <button
+                onClick={() => setActiveTab('queries')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                  activeTab === 'queries'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Queries & Discussions
               </button>
             </nav>
           </div>
@@ -541,7 +609,7 @@ const TeacherDashboard = () => {
                   </ul>
                 </div>
               </div>
-            ) : (
+            ) : activeTab === 'enrolled' ? (
               /* Enrolled Students Tab */
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -610,7 +678,127 @@ const TeacherDashboard = () => {
                   </div>
                 )}
               </div>
-            )}
+            ) : activeTab === 'queries' ? (
+              /* Queries & Discussions Tab */
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  Student Queries & Discussions
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  View and manage student queries. You can reply to queries, delete inappropriate content, and block students if needed.
+                </p>
+
+                {/* Class Tabs */}
+                <div className="flex gap-2 mb-6 flex-wrap">
+                  {[6, 7, 8, 9, 10].map((grade) => (
+                    <button
+                      key={grade}
+                      onClick={() => setSelectedQueryClass(grade)}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        selectedQueryClass === grade
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      Class {grade}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Queries List */}
+                {queries.length === 0 ? (
+                  <p className="text-gray-600">No queries from Class {selectedQueryClass} yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {queries.map((query) => (
+                      <div
+                        key={query.id}
+                        className="border rounded-lg p-4 bg-white hover:shadow-md transition"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 
+                            onClick={() => viewQueryDetail(query.id)}
+                            className="text-lg font-semibold text-gray-800 cursor-pointer hover:text-indigo-600"
+                          >
+                            {query.title}
+                          </h3>
+                          <span className="text-xs text-gray-500">
+                            {new Date(query.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 mb-3 line-clamp-2">{query.content}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span>👤 {query.studentName}</span>
+                            <span>💬 {query.replyCount} {query.replyCount === 1 ? 'reply' : 'replies'}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => viewQueryDetail(query.id)}
+                              className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-xs transition"
+                            >
+                              View & Reply
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBlockStudentId(query.studentId);
+                                setBlockReason('');
+                              }}
+                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs transition"
+                            >
+                              Block Student
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuery(query.id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Block Student Modal */}
+                {blockStudentId && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                      <h3 className="text-xl font-bold text-gray-800 mb-4">Block Student</h3>
+                      <p className="text-gray-600 mb-4">
+                        This will prevent the student from posting new queries. Please provide a reason:
+                      </p>
+                      <textarea
+                        value={blockReason}
+                        onChange={(e) => setBlockReason(e.target.value)}
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+                        rows="3"
+                        placeholder="Reason for blocking (e.g., inappropriate language, spam)"
+                        required
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setBlockStudentId(null);
+                            setBlockReason('');
+                          }}
+                          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleBlockStudent}
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition"
+                        >
+                          Block Student
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -13,6 +13,8 @@ import Submissions from './pages/Submissions';
 import LearningMaterials from './pages/LearningMaterials';
 import StudentMaterials from './pages/StudentMaterials';
 import ForgotPassword from './pages/ForgotPassword';
+import Queries from './pages/Queries';
+import QueryDetail from './pages/QueryDetail';
 
 function App() {
   return (
@@ -92,6 +94,22 @@ function App() {
             element={
               <ProtectedRoute requiredRole="STUDENT">
                 <StudentMaterials />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/queries"
+            element={
+              <ProtectedRoute requiredRole="STUDENT">
+                <Queries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/queries/:queryId"
+            element={
+              <ProtectedRoute>
+                <QueryDetail />
               </ProtectedRoute>
             }
           />

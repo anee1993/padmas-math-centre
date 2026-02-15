@@ -44,14 +44,16 @@ public class AdminController {
         List<EnrolledStudentDTO> students = adminService.getEnrolledStudentsByClass(classGrade);
         return ResponseEntity.ok(students);
     }
+    
+    @PutMapping("/reject-registration")
     public ResponseEntity<ApiResponse> rejectRegistration(@Valid @RequestBody ApprovalRequest request) {
         adminService.rejectRegistration(request.getStudentId(), request.getReason());
         return ResponseEntity.ok(new ApiResponse(true, "Student registration rejected"));
     }
-}
-
+    
     @DeleteMapping("/students/{studentId}")
     public ResponseEntity<ApiResponse> deleteStudent(@PathVariable Long studentId) {
         adminService.deleteStudent(studentId);
         return ResponseEntity.ok(new ApiResponse(true, "Student removed successfully"));
     }
+}

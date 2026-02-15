@@ -120,11 +120,7 @@ public class AdminService {
         user.setStatus(User.RegistrationStatus.REJECTED);
         userRepository.save(user);
     }
-
-    private final AssignmentSubmissionRepository submissionRepository;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
-}
-
+    
     @Transactional
     public void deleteStudent(Long studentId) {
         User user = userRepository.findById(studentId)
@@ -143,3 +139,4 @@ public class AdminService {
         // Delete user (will cascade delete student profile)
         userRepository.delete(user);
     }
+}

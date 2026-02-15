@@ -572,7 +572,7 @@ const TeacherDashboard = () => {
                   Create and manage assignments for your students. View submissions and track progress.
                 </p>
 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div 
                     onClick={() => navigate('/assignments')}
                     className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border-2 border-blue-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
@@ -639,6 +639,30 @@ const TeacherDashboard = () => {
                     </p>
                     <div className="mt-3 flex items-center text-purple-600 text-sm font-medium">
                       <span>Click to create</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => navigate('/assignments/generate')}
+                    className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-6 border-2 border-orange-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">🤖 AI Powered</p>
+                        <h3 className="text-lg font-bold text-gray-800">Generate Assignment</h3>
+                      </div>
+                      <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      Use AI to generate custom math assignments based on topic and difficulty.
+                    </p>
+                    <div className="mt-3 flex items-center text-orange-600 text-sm font-medium">
+                      <span>Click to generate</span>
                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>

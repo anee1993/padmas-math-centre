@@ -1,0 +1,295 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
+
+const GenerateAssignment = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [formData, setFormData] = useState({
+    classGrade: 6,
+    topic: '',
+    oneMarkQuestions: 0,
+    twoMarkQuestions: 0,
+    threeMarkQuestions: 0,
+    fiveMarkQuestions: 0,
+    complexity: 'MEDIUM'
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name.includes('Questions') || name === 'classGrade' ? parseInt(value) : value
+    }));
+  };
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    
+    // Validate at least one question type is selected
+    const totalQuestions = formData.oneMarkQuestions + formData.twoMarkQuestions + 
+                          formData.threeMarkQuestions + formData.fiveMarkQuestions;
+    
+    if (totalQuestions === 0) {
+      alert('Please select at least one question type');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await axios.post('/assignments/generate', formData);
+      setGeneratedContent(response.data.content);
+    } catch (error) {
+      alert(error.response?.data?.error || 'Failed to generate assignment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = () => {
+    const element = document.createElement('a');
+    const file = new Blob([generatedContent], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = `${formData.topic.replace(/\s+/g, '_')}_Class${formData.classGrade}_Assignment.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedContent);
+    alert('Assignment copied to clipboard!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
+      {/* Math symbols background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-5">
+        <div className="absolute top-10 left-10 text-6xl text-purple-600">∑</div>
+        <div className="absolute top-20 right-20 text-5xl text-pink-600">π</div>
+        <div className="absolute bottom-20 left-20 text-7xl text-blue-600">∫</div>
+        <div className="absolute bottom-10 right-10 text-6xl text-indigo-600">√</div>
+        <div className="absolute top-1/2 left-1/4 text-5xl text-purple-600">∞</div>
+        <div className="absolute top-1/3 right-1/3 text-6xl text-pink-600">θ</div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/teacher/dashboard')}
+            className="flex items-center text-purple-600 hover:text-purple-700 mb-4"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Dashboard
+          </button>
+          <h1 className="text-3xl font-bold text-gray-800">🤖 AI Assignment Generator</h1>
+          <p className="text-gray-600 mt-2">Generate custom math assignments using AI</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Form Section */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Assignment Configuration</h2>
+            
+            <form onSubmit={handleGenerate} className="space-y-4">
+              {/* Class Grade */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Class Grade
+                </label>
+                <select
+                  name="classGrade"
+                  value={formData.classGrade}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  {[6, 7, 8, 9, 10].map(grade => (
+                    <option key={grade} value={grade}>Class {grade}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Topic */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Topic
+                </label>
+                <input
+                  type="text"
+                  name="topic"
+                  value={formData.topic}
+                  onChange={handleChange}
+                  placeholder="e.g., Algebra, Geometry, Trigonometry"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Complexity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Complexity Level
+                </label>
+                <select
+                  name="complexity"
+                  value={formData.complexity}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                >
+                  <option value="EASY">Easy</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HARD">Hard</option>
+                </select>
+              </div>
+
+              {/* Question Distribution */}
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Question Distribution</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">1-Mark Questions</label>
+                    <input
+                      type="number"
+                      name="oneMarkQuestions"
+                      value={formData.oneMarkQuestions}
+                      onChange={handleChange}
+                      min="0"
+                      max="20"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">2-Mark Questions</label>
+                    <input
+                      type="number"
+                      name="twoMarkQuestions"
+                      value={formData.twoMarkQuestions}
+                      onChange={handleChange}
+                      min="0"
+                      max="20"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">3-Mark Questions</label>
+                    <input
+                      type="number"
+                      name="threeMarkQuestions"
+                      value={formData.threeMarkQuestions}
+                      onChange={handleChange}
+                      min="0"
+                      max="20"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">5-Mark Questions</label>
+                    <input
+                      type="number"
+                      name="fiveMarkQuestions"
+                      value={formData.fiveMarkQuestions}
+                      onChange={handleChange}
+                      min="0"
+                      max="20"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Generate Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Generate Assignment
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Info Box */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Tip:</strong> The AI will generate questions appropriate for the selected class level and complexity. You can edit the generated content before using it.
+              </p>
+            </div>
+          </div>
+
+          {/* Preview Section */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Generated Assignment</h2>
+              {generatedContent && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopy}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {generatedContent ? (
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 min-h-[500px] max-h-[600px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                  {generatedContent}
+                </pre>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-300 min-h-[500px] flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-lg font-medium">No assignment generated yet</p>
+                  <p className="text-sm mt-2">Fill in the form and click "Generate Assignment"</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GenerateAssignment;

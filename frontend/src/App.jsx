@@ -8,6 +8,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import VirtualClassroom from './pages/VirtualClassroom';
 import Assignments from './pages/Assignments';
 import CreateAssignment from './pages/CreateAssignment';
+import GenerateAssignment from './pages/GenerateAssignment';
 import AssignmentDetail from './pages/AssignmentDetail';
 import Submissions from './pages/Submissions';
 import LearningMaterials from './pages/LearningMaterials';
@@ -63,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="TEACHER">
                 <CreateAssignment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assignments/generate"
+            element={
+              <ProtectedRoute requiredRole="TEACHER">
+                <GenerateAssignment />
               </ProtectedRoute>
             }
           />

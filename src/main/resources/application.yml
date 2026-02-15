@@ -69,5 +69,12 @@ mail:
         timeout: 5000
         writetimeout: 5000
 
+# Groq AI Configuration
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+    url: https://api.groq.com/openai/v1/chat/completions
+  model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+
 server:
   port: ${SERVER_PORT:8080}

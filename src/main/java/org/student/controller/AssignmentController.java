@@ -11,6 +11,7 @@ import org.student.dto.*;
 import org.student.entity.User;
 import org.student.exception.ResourceNotFoundException;
 import org.student.repository.UserRepository;
+import org.student.service.AIAssignmentGeneratorService;
 import org.student.service.AssignmentService;
 import org.student.service.FileStorageService;
 
@@ -26,13 +27,16 @@ public class AssignmentController {
     private final AssignmentService assignmentService;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final AIAssignmentGeneratorService aiAssignmentGeneratorService;
     
     public AssignmentController(AssignmentService assignmentService, 
                                UserRepository userRepository,
-                               FileStorageService fileStorageService) {
+                               FileStorageService fileStorageService,
+                               AIAssignmentGeneratorService aiAssignmentGeneratorService) {
         this.assignmentService = assignmentService;
         this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
+        this.aiAssignmentGeneratorService = aiAssignmentGeneratorService;
     }
     
     @PostMapping
@@ -173,6 +177,28 @@ public class AssignmentController {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+    
+    @PostMapping("/generate")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<Map<String, String>> generateAssignment(
+            @Valid @RequestBody GenerateAssignmentRequest request) {
+        
+        try {
+            String generatedAssignment = aiAssignmentGeneratorService.generateAssignment(request);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("content", generatedAssignment);
+            response.put("topic", request.getTopic());
+            response.put("classGrade", String.valueOf(request.getClassGrade()));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

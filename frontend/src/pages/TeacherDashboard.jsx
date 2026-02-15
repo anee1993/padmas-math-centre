@@ -62,6 +62,21 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleDeleteStudent = async (studentId, studentName) => {
+    if (!window.confirm(`Are you sure you want to remove ${studentName} from the system? This will delete all their data including submissions and cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`/admin/students/${studentId}`);
+      setMessage('Student removed successfully');
+      fetchData();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to remove student');
+    }
+  };
+
   const getStudentsByClass = (classGrade) => {
     return enrolledStudents.filter(student => student.classGrade === classGrade);
   };
@@ -566,6 +581,7 @@ const TeacherDashboard = () => {
                           <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">DOB</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Gender</th>
                           <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Approved On</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
@@ -577,6 +593,15 @@ const TeacherDashboard = () => {
                             <td className="px-4 py-3 text-sm text-gray-600">{student.gender}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">
                               {new Date(student.approvedAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <button
+                                onClick={() => handleDeleteStudent(student.id, student.fullName)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition"
+                                title="Remove student from system"
+                              >
+                                Remove
+                              </button>
                             </td>
                           </tr>
                         ))}

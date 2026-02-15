@@ -6,6 +6,8 @@ import org.student.dto.EnrolledStudentDTO;
 import org.student.dto.PendingStudentDTO;
 import org.student.entity.User;
 import org.student.exception.ResourceNotFoundException;
+import org.student.repository.AssignmentSubmissionRepository;
+import org.student.repository.PasswordResetTokenRepository;
 import org.student.repository.UserRepository;
 
 import java.util.List;
@@ -15,9 +17,15 @@ import java.util.stream.Collectors;
 public class AdminService {
     
     private final UserRepository userRepository;
+    private final AssignmentSubmissionRepository submissionRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     
-    public AdminService(UserRepository userRepository) {
+    public AdminService(UserRepository userRepository, 
+                       AssignmentSubmissionRepository submissionRepository,
+                       PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
+        this.submissionRepository = submissionRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
     
     public List<PendingStudentDTO> getPendingRegistrations() {
@@ -112,4 +120,26 @@ public class AdminService {
         user.setStatus(User.RegistrationStatus.REJECTED);
         userRepository.save(user);
     }
+
+    private final AssignmentSubmissionRepository submissionRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 }
+
+    @Transactional
+    public void deleteStudent(Long studentId) {
+        User user = userRepository.findById(studentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        
+        if (user.getRole() != User.Role.STUDENT) {
+            throw new IllegalArgumentException("User is not a student");
+        }
+        
+        // Delete all assignment submissions by this student
+        submissionRepository.deleteAll(submissionRepository.findByStudentId(studentId));
+        
+        // Delete all password reset tokens for this student
+        passwordResetTokenRepository.deleteByEmail(user.getEmail());
+        
+        // Delete user (will cascade delete student profile)
+        userRepository.delete(user);
+    }

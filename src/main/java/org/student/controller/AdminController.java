@@ -49,3 +49,9 @@ public class AdminController {
         return ResponseEntity.ok(new ApiResponse(true, "Student registration rejected"));
     }
 }
+
+    @DeleteMapping("/students/{studentId}")
+    public ResponseEntity<ApiResponse> deleteStudent(@PathVariable Long studentId) {
+        adminService.deleteStudent(studentId);
+        return ResponseEntity.ok(new ApiResponse(true, "Student removed successfully"));
+    }

@@ -61,7 +61,7 @@ const VirtualClassroom = () => {
 
   const handleClose = () => {
     if (user.role === 'TEACHER') {
-      navigate('/teacher/dashboard');
+      navigate('/teacher/dashboard?tab=classrooms');
     } else {
       navigate('/student/dashboard');
     }

@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import axios from '../api/axios';
 
 const TeacherDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('pending');
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get initial tab from URL query parameter, default to 'pending'
+  const initialTab = searchParams.get('tab') || 'pending';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [pendingStudents, setPendingStudents] = useState([]);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
@@ -34,6 +39,12 @@ const TeacherDashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
+  
+  // Function to change tab and update URL
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   const fetchData = async () => {
     try {
@@ -325,7 +336,7 @@ const TeacherDashboard = () => {
           <div className="border-b border-gray-200 overflow-x-auto">
             <nav className="flex -mb-px min-w-max">
               <button
-                onClick={() => setActiveTab('pending')}
+                onClick={() => changeTab('pending')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'pending'
                     ? 'border-indigo-600 text-indigo-600'
@@ -340,7 +351,7 @@ const TeacherDashboard = () => {
                 )}
               </button>
               <button
-                onClick={() => setActiveTab('enrolled')}
+                onClick={() => changeTab('enrolled')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'enrolled'
                     ? 'border-indigo-600 text-indigo-600'
@@ -353,7 +364,7 @@ const TeacherDashboard = () => {
                 </span>
               </button>
               <button
-                onClick={() => setActiveTab('classrooms')}
+                onClick={() => changeTab('classrooms')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'classrooms'
                     ? 'border-indigo-600 text-indigo-600'
@@ -363,7 +374,7 @@ const TeacherDashboard = () => {
                 Classrooms
               </button>
               <button
-                onClick={() => setActiveTab('assignments')}
+                onClick={() => changeTab('assignments')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'assignments'
                     ? 'border-indigo-600 text-indigo-600'
@@ -373,7 +384,7 @@ const TeacherDashboard = () => {
                 Assignments
               </button>
               <button
-                onClick={() => setActiveTab('materials')}
+                onClick={() => changeTab('materials')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'materials'
                     ? 'border-indigo-600 text-indigo-600'
@@ -383,7 +394,7 @@ const TeacherDashboard = () => {
                 Materials
               </button>
               <button
-                onClick={() => setActiveTab('queries')}
+                onClick={() => changeTab('queries')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'queries'
                     ? 'border-indigo-600 text-indigo-600'
@@ -393,7 +404,7 @@ const TeacherDashboard = () => {
                 Queries
               </button>
               <button
-                onClick={() => setActiveTab('timetable')}
+                onClick={() => changeTab('timetable')}
                 className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'timetable'
                     ? 'border-indigo-600 text-indigo-600'

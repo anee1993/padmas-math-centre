@@ -72,7 +72,7 @@ const LateSubmissionRequests = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/teacher/dashboard')}
+              onClick={() => navigate('/teacher/dashboard?tab=assignments')}
               className="text-white hover:text-gray-200"
             >
               ← Back

@@ -141,7 +141,7 @@ const GenerateAssignment = () => {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => navigate('/teacher/dashboard')}
+            onClick={() => navigate('/teacher/dashboard?tab=assignments')}
             className="flex items-center text-purple-600 hover:text-purple-700 mb-4"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

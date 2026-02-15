@@ -19,6 +19,10 @@ const AssignmentDetail = () => {
     attachmentUrl: ''
   });
   const [message, setMessage] = useState('');
+  const [lateSubmissionRequest, setLateSubmissionRequest] = useState(null);
+  const [showLateRequestForm, setShowLateRequestForm] = useState(false);
+  const [lateRequestReason, setLateRequestReason] = useState('');
+  const [requestingLate, setRequestingLate] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -36,6 +40,15 @@ const AssignmentDetail = () => {
         } catch (error) {
           // No submission yet
           setSubmission(null);
+        }
+        
+        // Check for late submission request
+        try {
+          const lateRequestRes = await axios.get(`/late-submissions/assignment/${id}/my-request`);
+          setLateSubmissionRequest(lateRequestRes.data);
+        } catch (error) {
+          // No late request
+          setLateSubmissionRequest(null);
         }
       } else {
         const submissionsRes = await axios.get(`/assignments/${id}/submissions`);
@@ -135,6 +148,31 @@ const AssignmentDetail = () => {
     }
   };
 
+  const handleRequestLateSubmission = async () => {
+    if (!lateRequestReason.trim() || lateRequestReason.length < 10) {
+      setMessage('Please provide a reason (at least 10 characters)');
+      return;
+    }
+
+    setRequestingLate(true);
+    setMessage('');
+
+    try {
+      await axios.post('/late-submissions/request', {
+        assignmentId: parseInt(id),
+        reason: lateRequestReason
+      });
+      setMessage('Late submission request sent successfully! Your teacher will review it.');
+      setShowLateRequestForm(false);
+      setLateRequestReason('');
+      fetchData(); // Refresh to get the new request
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to send request');
+    } finally {
+      setRequestingLate(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -145,6 +183,8 @@ const AssignmentDetail = () => {
 
   const isOverdue = new Date() > new Date(assignment.dueDate);
   const canSubmit = user.role === 'STUDENT' && !submission && !isOverdue;
+  const canRequestLate = user.role === 'STUDENT' && !submission && isOverdue && !lateSubmissionRequest;
+  const hasApprovedLateRequest = lateSubmissionRequest?.status === 'APPROVED';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -285,12 +325,138 @@ const AssignmentDetail = () => {
                   </div>
                 )}
               </div>
-            ) : isOverdue ? (
-              <div className="bg-red-50 border border-red-200 rounded p-4">
-                <p className="text-red-800">This assignment is overdue. You can no longer submit.</p>
+            ) : isOverdue && !hasApprovedLateRequest ? (
+              <div>
+                {/* Late Submission Request Status */}
+                {lateSubmissionRequest ? (
+                  <div className={`border rounded p-4 ${
+                    lateSubmissionRequest.status === 'PENDING' ? 'bg-yellow-50 border-yellow-200' :
+                    lateSubmissionRequest.status === 'REJECTED' ? 'bg-red-50 border-red-200' :
+                    'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <svg className="w-6 h-6 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className={`font-semibold mb-2 ${
+                          lateSubmissionRequest.status === 'PENDING' ? 'text-yellow-800' :
+                          lateSubmissionRequest.status === 'REJECTED' ? 'text-red-800' :
+                          'text-gray-800'
+                        }`}>
+                          {lateSubmissionRequest.status === 'PENDING' && '⏳ Late Submission Request Pending'}
+                          {lateSubmissionRequest.status === 'REJECTED' && '❌ Late Submission Request Rejected'}
+                        </p>
+                        <p className="text-sm text-gray-700 mb-2">
+                          <span className="font-medium">Your reason:</span> {lateSubmissionRequest.reason}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Requested: {new Date(lateSubmissionRequest.requestedAt).toLocaleString()}
+                        </p>
+                        {lateSubmissionRequest.respondedAt && (
+                          <p className="text-xs text-gray-600">
+                            Responded: {new Date(lateSubmissionRequest.respondedAt).toLocaleString()}
+                          </p>
+                        )}
+                        {lateSubmissionRequest.teacherResponse && (
+                          <div className="mt-3 p-2 bg-white rounded border">
+                            <p className="text-sm font-medium text-gray-700">Teacher's Response:</p>
+                            <p className="text-sm text-gray-600 mt-1">{lateSubmissionRequest.teacherResponse}</p>
+                          </div>
+                        )}
+                        {lateSubmissionRequest.status === 'PENDING' && (
+                          <p className="text-sm text-yellow-700 mt-3">
+                            Your teacher will review your request soon. You'll be able to submit once approved.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 rounded p-4">
+                    <div className="flex items-start gap-3 mb-4">
+                      <svg className="w-6 h-6 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-red-800 font-semibold">This assignment is overdue</p>
+                        <p className="text-sm text-red-700 mt-1">
+                          The due date has passed. You need teacher approval to submit late.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {!showLateRequestForm ? (
+                      <button
+                        onClick={() => setShowLateRequestForm(true)}
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg transition font-medium flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Request Late Submission Permission
+                      </button>
+                    ) : (
+                      <div className="bg-white rounded-lg p-4 border border-orange-200">
+                        <h4 className="font-semibold text-gray-800 mb-3">Request Late Submission</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Reason for Late Submission (minimum 10 characters)
+                            </label>
+                            <textarea
+                              value={lateRequestReason}
+                              onChange={(e) => setLateRequestReason(e.target.value)}
+                              rows="4"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                              placeholder="Explain why you need to submit late (e.g., illness, family emergency, technical issues)..."
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              {lateRequestReason.length}/500 characters
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleRequestLateSubmission}
+                              disabled={requestingLate || lateRequestReason.length < 10}
+                              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            >
+                              {requestingLate ? 'Sending...' : 'Send Request'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowLateRequestForm(false);
+                                setLateRequestReason('');
+                                setMessage('');
+                              }}
+                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {hasApprovedLateRequest && (
+                  <div className="bg-green-50 border border-green-200 rounded p-3 mb-4">
+                    <p className="text-green-800 text-sm font-semibold flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Late submission approved! You can now submit your assignment.
+                    </p>
+                    {lateSubmissionRequest.teacherResponse && (
+                      <p className="text-sm text-green-700 mt-2">
+                        <span className="font-medium">Teacher's note:</span> {lateSubmissionRequest.teacherResponse}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Your Answer

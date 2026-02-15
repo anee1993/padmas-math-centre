@@ -3,103 +3,44 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 
-// Common Indian names and their Sanskrit/Hindi meanings
-const nameMeanings = {
-  // Boys names
-  'aarav': 'peaceful, wisdom',
-  'arjun': 'bright, shining, white',
-  'aditya': 'sun, belonging to Aditi',
-  'aryan': 'noble, honorable',
-  'vivaan': 'full of life, lord Krishna',
-  'vihaan': 'dawn, morning',
-  'reyansh': 'ray of light, part of lord Vishnu',
-  'ayaan': 'gift of God, speed',
-  'krishna': 'dark, black, all-attractive',
-  'shaurya': 'bravery, courage',
-  'atharv': 'knowledge, the first Veda',
-  'rudra': 'lord Shiva, the roarer',
-  'advait': 'unique, non-duality',
-  'arnav': 'ocean, sea',
-  'sai': 'divine, saint',
-  'dhruv': 'pole star, constant',
-  'ishaan': 'sun, lord Shiva',
-  'kabir': 'great, powerful',
-  'om': 'sacred sound, the beginning',
-  'pranav': 'sacred syllable Om',
-  'rohan': 'ascending, growing',
-  'shivansh': 'part of lord Shiva',
-  'yash': 'success, glory, fame',
-  
-  // Girls names
-  'aadhya': 'first power, goddess Durga',
-  'ananya': 'unique, incomparable',
-  'diya': 'lamp, light',
-  'pari': 'fairy, angel',
-  'saanvi': 'goddess Lakshmi, knowledge',
-  'aaradhya': 'worshipped, blessed',
-  'anvi': 'goddess of forest',
-  'kavya': 'poetry, poem',
-  'kiara': 'dark-haired, little dark one',
-  'navya': 'new, young, fresh',
-  'prisha': 'beloved, gift of God',
-  'riya': 'singer, graceful',
-  'sara': 'princess, noble lady',
-  'shanaya': 'first ray of sun',
-  'tara': 'star, goddess',
-  'anika': 'grace, favor',
-  'ishita': 'desired, superior',
-  'myra': 'sweet, beloved',
-  'nisha': 'night, dream',
-  'pooja': 'worship, prayer',
-  'priya': 'beloved, dear one',
-  'shreya': 'auspicious, beautiful',
-  'tanvi': 'delicate, beautiful',
-  'vanya': 'gracious gift of God',
-  'zara': 'princess, flower',
-  
-  // Common names
-  'raj': 'king, ruler',
-  'dev': 'god, divine',
-  'maya': 'illusion, magic',
-  'kiran': 'ray of light',
-  'amit': 'infinite, boundless',
-  'anjali': 'offering, tribute',
-  'deepak': 'lamp, light',
-  'neha': 'love, affection',
-  'rahul': 'conqueror of miseries',
-  'rohit': 'red, the first rays of sun',
-  'sanjay': 'victorious, triumphant',
-  'vijay': 'victory, conquest',
-  'padma': 'lotus flower',
-  'lakshmi': 'goddess of wealth',
-  'ganesh': 'lord of multitudes',
-  'shiva': 'auspicious one',
-  'vishnu': 'all-pervading',
-  'rama': 'pleasing, charming',
-  'sita': 'furrow, goddess',
-  'radha': 'success, prosperity',
-};
+// Motivational quotes for students
+const motivationalQuotes = [
+  "Believe in yourself and all that you are capable of achieving!",
+  "Every problem is an opportunity to learn and grow stronger.",
+  "Success is the sum of small efforts repeated day in and day out.",
+  "The only way to do great work is to love what you do.",
+  "Your potential is endless. Keep pushing forward!",
+  "Mathematics is not about numbers, it's about understanding patterns.",
+  "Hard work beats talent when talent doesn't work hard.",
+  "Dream big, work hard, stay focused, and surround yourself with good people.",
+  "The expert in anything was once a beginner. Keep learning!",
+  "Mistakes are proof that you are trying. Never give up!",
+  "Education is the most powerful weapon you can use to change the world.",
+  "The future belongs to those who believe in the beauty of their dreams.",
+  "You are braver than you believe, stronger than you seem, and smarter than you think.",
+  "Success doesn't come from what you do occasionally, it comes from what you do consistently.",
+  "Every accomplishment starts with the decision to try.",
+  "Be patient with yourself. Growth takes time.",
+  "Your only limit is you. Believe in yourself and keep going!",
+  "The beautiful thing about learning is that no one can take it away from you.",
+  "Strive for progress, not perfection.",
+  "You don't have to be great to start, but you have to start to be great.",
+];
 
-// Function to get name meaning
-const getNameMeaning = (fullName) => {
-  if (!fullName) return null;
-  
-  // Extract first name and convert to lowercase
-  const firstName = fullName.trim().split(' ')[0].toLowerCase();
-  
-  // Check if we have a meaning for this name
-  if (nameMeanings[firstName]) {
-    return `"${firstName.charAt(0).toUpperCase() + firstName.slice(1)}" means "${nameMeanings[firstName]}" in Sanskrit/Hindi`;
+// Function to get a consistent quote for a user (based on their name)
+const getMotivationalQuote = (fullName) => {
+  if (!fullName) {
+    return motivationalQuotes[0];
   }
   
-  // Check for partial matches (e.g., "Aarav Kumar" -> "aarav")
-  for (const [name, meaning] of Object.entries(nameMeanings)) {
-    if (firstName.includes(name) || name.includes(firstName)) {
-      return `Your name is related to "${name.charAt(0).toUpperCase() + name.slice(1)}" which means "${meaning}" in Sanskrit/Hindi`;
-    }
+  // Use the name to generate a consistent index (same name = same quote)
+  let hash = 0;
+  for (let i = 0; i < fullName.length; i++) {
+    hash = fullName.charCodeAt(i) + ((hash << 5) - hash);
   }
+  const index = Math.abs(hash) % motivationalQuotes.length;
   
-  return null;
+  return motivationalQuotes[index];
 };
 
 const StudentDashboard = () => {
@@ -107,17 +48,17 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [studentProfile, setStudentProfile] = useState(null);
   const [classroom, setClassroom] = useState(null);
-  const [nameMeaning, setNameMeaning] = useState(null);
+  const [motivationalQuote, setMotivationalQuote] = useState('');
 
   useEffect(() => {
     fetchStudentData();
   }, []);
 
   useEffect(() => {
-    // Get name meaning when student profile is loaded
+    // Get motivational quote when student profile is loaded
     if (studentProfile?.fullName) {
-      const meaning = getNameMeaning(studentProfile.fullName);
-      setNameMeaning(meaning);
+      const quote = getMotivationalQuote(studentProfile.fullName);
+      setMotivationalQuote(quote);
     }
   }, [studentProfile]);
 
@@ -172,9 +113,9 @@ const StudentDashboard = () => {
               <p className="text-sm md:text-lg opacity-90 mb-1">
                 {studentProfile ? `Class ${studentProfile.classGrade} - Mathematics` : 'Ready to learn today?'}
               </p>
-              {nameMeaning && (
+              {motivationalQuote && (
                 <p className="text-xs md:text-sm opacity-80 italic mt-2 bg-white bg-opacity-10 backdrop-blur-sm rounded px-3 py-1.5 inline-block">
-                  ✨ {nameMeaning}
+                  💡 {motivationalQuote}
                 </p>
               )}
             </div>

@@ -35,8 +35,10 @@ public class DataInitializer implements CommandLineRunner {
                 // Update old teacher email to new email
                 oldTeacher.setEmail("padmakrishnan1992@gmail.com");
                 oldTeacher.setFullName("A Padma");
+                oldTeacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
                 userRepository.save(oldTeacher);
                 System.out.println("Teacher email updated to: padmakrishnan1992@gmail.com");
+                System.out.println("Teacher password reset to: Teacher@123");
             } else {
                 // Create new teacher account
                 teacher = new User();
@@ -49,11 +51,24 @@ public class DataInitializer implements CommandLineRunner {
                 userRepository.save(teacher);
                 System.out.println("Teacher account created: padmakrishnan1992@gmail.com / Teacher@123");
             }
-        } else if (teacher.getFullName() == null || teacher.getFullName().isEmpty()) {
-            // Update existing teacher account with name
-            teacher.setFullName("A Padma");
-            userRepository.save(teacher);
-            System.out.println("Teacher account updated with name: A Padma");
+        } else {
+            // Update existing teacher account
+            boolean updated = false;
+            
+            if (teacher.getFullName() == null || teacher.getFullName().isEmpty()) {
+                teacher.setFullName("A Padma");
+                updated = true;
+            }
+            
+            // Always ensure password is set correctly
+            teacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
+            updated = true;
+            
+            if (updated) {
+                userRepository.save(teacher);
+                System.out.println("Teacher account updated: padmakrishnan1992@gmail.com");
+                System.out.println("Password confirmed: Teacher@123");
+            }
         }
         
         // Initialize virtual classrooms for grades 6-10

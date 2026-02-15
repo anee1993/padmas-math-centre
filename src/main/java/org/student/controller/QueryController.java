@@ -5,6 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.student.dto.*;
+import org.student.entity.User;
+import org.student.exception.ResourceNotFoundException;
+import org.student.repository.UserRepository;
 import org.student.service.QueryService;
 
 import java.util.List;
@@ -15,24 +18,28 @@ import java.util.Map;
 public class QueryController {
     
     private final QueryService queryService;
+    private final UserRepository userRepository;
     
-    public QueryController(QueryService queryService) {
+    public QueryController(QueryService queryService, UserRepository userRepository) {
         this.queryService = queryService;
+        this.userRepository = userRepository;
     }
     
     @PostMapping
     public ResponseEntity<QueryDTO> createQuery(
             @Valid @RequestBody CreateQueryRequest request,
             Authentication authentication) {
-        Long studentId = Long.parseLong(authentication.getName());
-        QueryDTO query = queryService.createQuery(studentId, request);
+        User student = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        QueryDTO query = queryService.createQuery(student.getId(), request);
         return ResponseEntity.ok(query);
     }
     
     @GetMapping("/my-class")
     public ResponseEntity<List<QueryDTO>> getMyClassQueries(Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
-        List<QueryDTO> queries = queryService.getMyClassQueries(userId);
+        User user = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        List<QueryDTO> queries = queryService.getMyClassQueries(user.getId());
         return ResponseEntity.ok(queries);
     }
     
@@ -59,8 +66,9 @@ public class QueryController {
             @PathVariable Long queryId,
             @Valid @RequestBody CreateReplyRequest request,
             Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
-        QueryReplyDTO reply = queryService.addReply(queryId, userId, request);
+        User user = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        QueryReplyDTO reply = queryService.addReply(queryId, user.getId(), request);
         return ResponseEntity.ok(reply);
     }
     
@@ -90,8 +98,9 @@ public class QueryController {
     
     @GetMapping("/is-blocked")
     public ResponseEntity<Map<String, Boolean>> isBlocked(Authentication authentication) {
-        Long studentId = Long.parseLong(authentication.getName());
-        boolean blocked = queryService.isStudentBlocked(studentId);
+        User student = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        boolean blocked = queryService.isStudentBlocked(student.getId());
         return ResponseEntity.ok(Map.of("blocked", blocked));
     }
 }

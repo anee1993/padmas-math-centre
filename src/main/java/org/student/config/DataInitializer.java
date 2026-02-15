@@ -1,5 +1,6 @@
 package org.student.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,15 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final VirtualClassroomService virtualClassroomService;
     
+    @Value("${teacher.email}")
+    private String teacherEmail;
+    
+    @Value("${teacher.password}")
+    private String teacherPassword;
+    
+    @Value("${teacher.name}")
+    private String teacherName;
+    
     public DataInitializer(UserRepository userRepository, 
                           PasswordEncoder passwordEncoder,
                           VirtualClassroomService virtualClassroomService) {
@@ -25,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Create or update teacher account
-        User teacher = userRepository.findByEmail("padmakrishnan1992@gmail.com")
+        User teacher = userRepository.findByEmail(teacherEmail)
             .orElse(null);
         
         if (teacher == null) {
@@ -33,41 +43,41 @@ public class DataInitializer implements CommandLineRunner {
             User oldTeacher = userRepository.findByEmail("teacher@mathtuition.com").orElse(null);
             if (oldTeacher != null) {
                 // Update old teacher email to new email
-                oldTeacher.setEmail("padmakrishnan1992@gmail.com");
-                oldTeacher.setFullName("A Padma");
-                oldTeacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
+                oldTeacher.setEmail(teacherEmail);
+                oldTeacher.setFullName(teacherName);
+                oldTeacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
                 userRepository.save(oldTeacher);
-                System.out.println("Teacher email updated to: padmakrishnan1992@gmail.com");
-                System.out.println("Teacher password reset to: Teacher@123");
+                System.out.println("Teacher email updated to: " + teacherEmail);
+                System.out.println("Teacher password reset");
             } else {
                 // Create new teacher account
                 teacher = new User();
-                teacher.setEmail("padmakrishnan1992@gmail.com");
-                teacher.setFullName("A Padma");
-                teacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
+                teacher.setEmail(teacherEmail);
+                teacher.setFullName(teacherName);
+                teacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
                 teacher.setRole(User.Role.TEACHER);
                 teacher.setStatus(User.RegistrationStatus.APPROVED);
                 
                 userRepository.save(teacher);
-                System.out.println("Teacher account created: padmakrishnan1992@gmail.com / Teacher@123");
+                System.out.println("Teacher account created: " + teacherEmail);
             }
         } else {
             // Update existing teacher account
             boolean updated = false;
             
-            if (teacher.getFullName() == null || teacher.getFullName().isEmpty()) {
-                teacher.setFullName("A Padma");
+            if (teacher.getFullName() == null || teacher.getFullName().isEmpty() || !teacher.getFullName().equals(teacherName)) {
+                teacher.setFullName(teacherName);
                 updated = true;
             }
             
             // Always ensure password is set correctly
-            teacher.setPasswordHash(passwordEncoder.encode("Teacher@123"));
+            teacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
             updated = true;
             
             if (updated) {
                 userRepository.save(teacher);
-                System.out.println("Teacher account updated: padmakrishnan1992@gmail.com");
-                System.out.println("Password confirmed: Teacher@123");
+                System.out.println("Teacher account updated: " + teacherEmail);
+                System.out.println("Password confirmed");
             }
         }
         

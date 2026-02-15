@@ -17,6 +17,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Queries from './pages/Queries';
 import QueryDetail from './pages/QueryDetail';
 import Timetable from './pages/Timetable';
+import LateSubmissionRequests from './pages/LateSubmissionRequests';
 
 function App() {
   return (
@@ -88,6 +89,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="TEACHER">
                 <Submissions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/late-submissions"
+            element={
+              <ProtectedRoute requiredRole="TEACHER">
+                <LateSubmissionRequests />
               </ProtectedRoute>
             }
           />

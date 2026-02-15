@@ -25,13 +25,16 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
     private final UserRepository userRepository;
+    private final LateSubmissionService lateSubmissionService;
     
     public AssignmentService(AssignmentRepository assignmentRepository,
                            AssignmentSubmissionRepository submissionRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           LateSubmissionService lateSubmissionService) {
         this.assignmentRepository = assignmentRepository;
         this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
+        this.lateSubmissionService = lateSubmissionService;
     }
     
     @Transactional
@@ -102,6 +105,19 @@ public class AssignmentService {
                 throw new IllegalStateException("Assignment already submitted");
             });
         
+        // Check if assignment is overdue
+        boolean isOverdue = LocalDateTime.now().isAfter(assignment.getDueDate());
+        if (isOverdue) {
+            // Check if late submission is approved
+            boolean isApproved = lateSubmissionService.isLateSubmissionApproved(
+                request.getAssignmentId(), studentId);
+            
+            if (!isApproved) {
+                throw new IllegalStateException(
+                    "Assignment is overdue. Please request late submission permission from your teacher.");
+            }
+        }
+        
         AssignmentSubmission submission = new AssignmentSubmission();
         submission.setAssignmentId(request.getAssignmentId());
         submission.setStudentId(studentId);
@@ -109,7 +125,7 @@ public class AssignmentService {
         submission.setAttachmentUrl(request.getAttachmentUrl());
         submission.setSubmittedAt(LocalDateTime.now());
         submission.setStatus(AssignmentSubmission.SubmissionStatus.SUBMITTED);
-        submission.setIsLate(LocalDateTime.now().isAfter(assignment.getDueDate()));
+        submission.setIsLate(isOverdue);
         
         AssignmentSubmission saved = submissionRepository.save(submission);
         return mapSubmissionToDTO(saved);

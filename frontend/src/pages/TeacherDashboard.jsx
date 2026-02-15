@@ -638,6 +638,30 @@ const TeacherDashboard = () => {
                   </div>
 
                   <div 
+                    onClick={() => navigate('/late-submissions')}
+                    className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-6 border-2 border-orange-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Manage Requests</p>
+                        <h3 className="text-lg font-bold text-gray-800">Late Submissions</h3>
+                      </div>
+                      <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      Review and approve student requests for late assignment submissions.
+                    </p>
+                    <div className="mt-3 flex items-center text-orange-600 text-sm font-medium">
+                      <span>Click to view</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div 
                     onClick={() => navigate('/assignments/create')}
                     className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border-2 border-purple-200 cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
                   >

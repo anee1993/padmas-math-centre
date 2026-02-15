@@ -3,15 +3,123 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 
+// Common Indian names and their Sanskrit/Hindi meanings
+const nameMeanings = {
+  // Boys names
+  'aarav': 'peaceful, wisdom',
+  'arjun': 'bright, shining, white',
+  'aditya': 'sun, belonging to Aditi',
+  'aryan': 'noble, honorable',
+  'vivaan': 'full of life, lord Krishna',
+  'vihaan': 'dawn, morning',
+  'reyansh': 'ray of light, part of lord Vishnu',
+  'ayaan': 'gift of God, speed',
+  'krishna': 'dark, black, all-attractive',
+  'shaurya': 'bravery, courage',
+  'atharv': 'knowledge, the first Veda',
+  'rudra': 'lord Shiva, the roarer',
+  'advait': 'unique, non-duality',
+  'arnav': 'ocean, sea',
+  'sai': 'divine, saint',
+  'dhruv': 'pole star, constant',
+  'ishaan': 'sun, lord Shiva',
+  'kabir': 'great, powerful',
+  'om': 'sacred sound, the beginning',
+  'pranav': 'sacred syllable Om',
+  'rohan': 'ascending, growing',
+  'shivansh': 'part of lord Shiva',
+  'yash': 'success, glory, fame',
+  
+  // Girls names
+  'aadhya': 'first power, goddess Durga',
+  'ananya': 'unique, incomparable',
+  'diya': 'lamp, light',
+  'pari': 'fairy, angel',
+  'saanvi': 'goddess Lakshmi, knowledge',
+  'aaradhya': 'worshipped, blessed',
+  'anvi': 'goddess of forest',
+  'kavya': 'poetry, poem',
+  'kiara': 'dark-haired, little dark one',
+  'navya': 'new, young, fresh',
+  'prisha': 'beloved, gift of God',
+  'riya': 'singer, graceful',
+  'sara': 'princess, noble lady',
+  'shanaya': 'first ray of sun',
+  'tara': 'star, goddess',
+  'anika': 'grace, favor',
+  'ishita': 'desired, superior',
+  'myra': 'sweet, beloved',
+  'nisha': 'night, dream',
+  'pooja': 'worship, prayer',
+  'priya': 'beloved, dear one',
+  'shreya': 'auspicious, beautiful',
+  'tanvi': 'delicate, beautiful',
+  'vanya': 'gracious gift of God',
+  'zara': 'princess, flower',
+  
+  // Common names
+  'raj': 'king, ruler',
+  'dev': 'god, divine',
+  'maya': 'illusion, magic',
+  'kiran': 'ray of light',
+  'amit': 'infinite, boundless',
+  'anjali': 'offering, tribute',
+  'deepak': 'lamp, light',
+  'neha': 'love, affection',
+  'rahul': 'conqueror of miseries',
+  'rohit': 'red, the first rays of sun',
+  'sanjay': 'victorious, triumphant',
+  'vijay': 'victory, conquest',
+  'padma': 'lotus flower',
+  'lakshmi': 'goddess of wealth',
+  'ganesh': 'lord of multitudes',
+  'shiva': 'auspicious one',
+  'vishnu': 'all-pervading',
+  'rama': 'pleasing, charming',
+  'sita': 'furrow, goddess',
+  'radha': 'success, prosperity',
+};
+
+// Function to get name meaning
+const getNameMeaning = (fullName) => {
+  if (!fullName) return null;
+  
+  // Extract first name and convert to lowercase
+  const firstName = fullName.trim().split(' ')[0].toLowerCase();
+  
+  // Check if we have a meaning for this name
+  if (nameMeanings[firstName]) {
+    return `"${firstName.charAt(0).toUpperCase() + firstName.slice(1)}" means "${nameMeanings[firstName]}" in Sanskrit/Hindi`;
+  }
+  
+  // Check for partial matches (e.g., "Aarav Kumar" -> "aarav")
+  for (const [name, meaning] of Object.entries(nameMeanings)) {
+    if (firstName.includes(name) || name.includes(firstName)) {
+      return `Your name is related to "${name.charAt(0).toUpperCase() + name.slice(1)}" which means "${meaning}" in Sanskrit/Hindi`;
+    }
+  }
+  
+  return null;
+};
+
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [studentProfile, setStudentProfile] = useState(null);
   const [classroom, setClassroom] = useState(null);
+  const [nameMeaning, setNameMeaning] = useState(null);
 
   useEffect(() => {
     fetchStudentData();
   }, []);
+
+  useEffect(() => {
+    // Get name meaning when student profile is loaded
+    if (studentProfile?.fullName) {
+      const meaning = getNameMeaning(studentProfile.fullName);
+      setNameMeaning(meaning);
+    }
+  }, [studentProfile]);
 
   const fetchStudentData = async () => {
     try {
@@ -57,13 +165,18 @@ const StudentDashboard = () => {
       <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white py-6 md:py-8 shadow-lg">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl md:text-4xl font-bold mb-2">
                 Welcome, {user?.fullName || studentProfile?.fullName || 'Student'}! 🎓
               </h2>
-              <p className="text-sm md:text-lg opacity-90">
+              <p className="text-sm md:text-lg opacity-90 mb-1">
                 {studentProfile ? `Class ${studentProfile.classGrade} - Mathematics` : 'Ready to learn today?'}
               </p>
+              {nameMeaning && (
+                <p className="text-xs md:text-sm opacity-80 italic mt-2 bg-white bg-opacity-10 backdrop-blur-sm rounded px-3 py-1.5 inline-block">
+                  ✨ {nameMeaning}
+                </p>
+              )}
             </div>
             {studentProfile && (
               <>

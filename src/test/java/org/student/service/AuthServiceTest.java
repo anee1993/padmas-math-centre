@@ -56,7 +56,7 @@ class AuthServiceTest {
         registrationRequest.setPassword("Test@123");
         registrationRequest.setFullName("Test Student");
         registrationRequest.setDateOfBirth(LocalDate.of(2010, 1, 1));
-        registrationRequest.setGender("Male");
+        registrationRequest.setGender(StudentProfile.Gender.MALE);
         registrationRequest.setClassGrade(8);
 
         mockUser = new User();
@@ -116,7 +116,9 @@ class AuthServiceTest {
     @Test
     void login_Success_Student() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("student@test.com", "Test@123");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("student@test.com");
+        loginRequest.setPassword("Test@123");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("jwt-token");
@@ -147,7 +149,9 @@ class AuthServiceTest {
         teacher.setStatus(User.RegistrationStatus.APPROVED);
         teacher.setFullName("Test Teacher");
 
-        LoginRequest loginRequest = new LoginRequest("teacher@test.com", "Teacher@123");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("teacher@test.com");
+        loginRequest.setPassword("Teacher@123");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(teacher));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("jwt-token");
@@ -164,7 +168,9 @@ class AuthServiceTest {
     @Test
     void login_InvalidEmail_ThrowsException() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("invalid@test.com", "Test@123");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("invalid@test.com");
+        loginRequest.setPassword("Test@123");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -181,7 +187,9 @@ class AuthServiceTest {
     @Test
     void login_InvalidPassword_ThrowsException() {
         // Arrange
-        LoginRequest loginRequest = new LoginRequest("student@test.com", "WrongPassword");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("student@test.com");
+        loginRequest.setPassword("WrongPassword");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
@@ -200,7 +208,9 @@ class AuthServiceTest {
     void login_PendingApproval_ThrowsException() {
         // Arrange
         mockUser.setStatus(User.RegistrationStatus.PENDING);
-        LoginRequest loginRequest = new LoginRequest("student@test.com", "Test@123");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("student@test.com");
+        loginRequest.setPassword("Test@123");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
@@ -218,7 +228,9 @@ class AuthServiceTest {
     void login_RejectedStudent_ThrowsException() {
         // Arrange
         mockUser.setStatus(User.RegistrationStatus.REJECTED);
-        LoginRequest loginRequest = new LoginRequest("student@test.com", "Test@123");
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("student@test.com");
+        loginRequest.setPassword("Test@123");
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 

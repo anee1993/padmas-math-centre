@@ -77,9 +77,11 @@ groq:
   model: ${GROQ_MODEL:llama-3.3-70b-versatile}
 
 # Teacher Account Configuration
+# Note: Password is only used when creating a NEW teacher account
+# Use the forgot password feature to reset an existing teacher's password
 teacher:
   email: ${TEACHER_EMAIL}
-  password: ${TEACHER_PASSWORD}
+  password: ${TEACHER_DEFAULT_PASSWORD}
   name: ${TEACHER_NAME}
 
 server:

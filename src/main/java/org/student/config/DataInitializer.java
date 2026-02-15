@@ -19,7 +19,7 @@ public class DataInitializer implements CommandLineRunner {
     private String teacherEmail;
     
     @Value("${teacher.password}")
-    private String teacherPassword;
+    private String teacherDefaultPassword;
     
     @Value("${teacher.name}")
     private String teacherName;
@@ -34,51 +34,46 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
-        // Create or update teacher account
-        User teacher = userRepository.findByEmail(teacherEmail)
-            .orElse(null);
+        // Check if teacher account exists
+        User teacher = userRepository.findByEmail(teacherEmail).orElse(null);
         
         if (teacher == null) {
-            // Check if old email exists and update it
+            // Check if old email exists and migrate it
             User oldTeacher = userRepository.findByEmail("teacher@mathtuition.com").orElse(null);
             if (oldTeacher != null) {
-                // Update old teacher email to new email
+                // Migrate old teacher account to new email
                 oldTeacher.setEmail(teacherEmail);
                 oldTeacher.setFullName(teacherName);
-                oldTeacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
+                // Keep existing password - don't reset it
                 userRepository.save(oldTeacher);
-                System.out.println("Teacher email updated to: " + teacherEmail);
-                System.out.println("Teacher password reset");
+                System.out.println("Teacher account migrated to: " + teacherEmail);
+                System.out.println("Password unchanged - use forgot password to reset if needed");
             } else {
-                // Create new teacher account
+                // Create new teacher account with default password
                 teacher = new User();
                 teacher.setEmail(teacherEmail);
                 teacher.setFullName(teacherName);
-                teacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
+                teacher.setPasswordHash(passwordEncoder.encode(teacherDefaultPassword));
                 teacher.setRole(User.Role.TEACHER);
                 teacher.setStatus(User.RegistrationStatus.APPROVED);
                 
                 userRepository.save(teacher);
-                System.out.println("Teacher account created: " + teacherEmail);
+                System.out.println("=".repeat(60));
+                System.out.println("NEW TEACHER ACCOUNT CREATED");
+                System.out.println("Email: " + teacherEmail);
+                System.out.println("Default Password: " + teacherDefaultPassword);
+                System.out.println("IMPORTANT: Please change this password after first login!");
+                System.out.println("=".repeat(60));
             }
         } else {
-            // Update existing teacher account
-            boolean updated = false;
-            
-            if (teacher.getFullName() == null || teacher.getFullName().isEmpty() || !teacher.getFullName().equals(teacherName)) {
+            // Teacher account exists - update name if needed but DON'T touch password
+            if (teacher.getFullName() == null || !teacher.getFullName().equals(teacherName)) {
                 teacher.setFullName(teacherName);
-                updated = true;
-            }
-            
-            // Always ensure password is set correctly
-            teacher.setPasswordHash(passwordEncoder.encode(teacherPassword));
-            updated = true;
-            
-            if (updated) {
                 userRepository.save(teacher);
-                System.out.println("Teacher account updated: " + teacherEmail);
-                System.out.println("Password confirmed");
+                System.out.println("Teacher name updated to: " + teacherName);
             }
+            System.out.println("Teacher account exists: " + teacherEmail);
+            System.out.println("Use forgot password feature to reset password if needed");
         }
         
         // Initialize virtual classrooms for grades 6-10

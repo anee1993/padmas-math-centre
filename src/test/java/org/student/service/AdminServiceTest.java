@@ -77,7 +77,7 @@ class AdminServiceTest {
         profile.setUser(user);
         profile.setFullName(name);
         profile.setDateOfBirth(LocalDate.of(2010, 1, 1));
-        profile.setGender("Male");
+        profile.setGender(StudentProfile.Gender.MALE);
         profile.setClassGrade(classGrade);
 
         user.setStudentProfile(profile);

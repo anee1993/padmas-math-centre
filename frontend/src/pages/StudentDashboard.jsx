@@ -27,20 +27,10 @@ const motivationalQuotes = [
   "You don't have to be great to start, but you have to start to be great.",
 ];
 
-// Function to get a consistent quote for a user (based on their name)
-const getMotivationalQuote = (fullName) => {
-  if (!fullName) {
-    return motivationalQuotes[0];
-  }
-  
-  // Use the name to generate a consistent index (same name = same quote)
-  let hash = 0;
-  for (let i = 0; i < fullName.length; i++) {
-    hash = fullName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % motivationalQuotes.length;
-  
-  return motivationalQuotes[index];
+// Function to get a random motivational quote
+const getMotivationalQuote = () => {
+  const randomIndex = Math.floor(Math.random() * motivationalQuotes.length);
+  return motivationalQuotes[randomIndex];
 };
 
 const StudentDashboard = () => {
@@ -48,19 +38,11 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [studentProfile, setStudentProfile] = useState(null);
   const [classroom, setClassroom] = useState(null);
-  const [motivationalQuote, setMotivationalQuote] = useState('');
+  const [motivationalQuote] = useState(() => getMotivationalQuote());
 
   useEffect(() => {
     fetchStudentData();
   }, []);
-
-  useEffect(() => {
-    // Get motivational quote when student profile is loaded
-    if (studentProfile?.fullName) {
-      const quote = getMotivationalQuote(studentProfile.fullName);
-      setMotivationalQuote(quote);
-    }
-  }, [studentProfile]);
 
   const fetchStudentData = async () => {
     try {

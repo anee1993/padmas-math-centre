@@ -60,11 +60,7 @@ const VirtualClassroom = () => {
   };
 
   const handleClose = () => {
-    if (user.role === 'TEACHER') {
-      navigate('/teacher/dashboard?tab=classrooms');
-    } else {
-      navigate('/student/dashboard');
-    }
+    navigate(-1);
   };
 
   if (loading) {

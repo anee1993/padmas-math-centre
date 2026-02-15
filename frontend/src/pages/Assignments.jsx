@@ -61,7 +61,7 @@ const Assignments = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate(user.role === 'TEACHER' ? '/teacher/dashboard?tab=assignments' : '/student/dashboard')}
+              onClick={() => navigate(-1)}
               className="text-white hover:text-gray-200"
             >
               ← Back

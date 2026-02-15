@@ -111,7 +111,7 @@ const CreateAssignment = () => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/assignments')}
+              onClick={() => navigate(-1)}
               className="text-white hover:text-gray-200"
             >
               ← Back
@@ -290,7 +290,7 @@ const CreateAssignment = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/assignments')}
+                onClick={() => navigate(-1)}
                 disabled={uploading}
                 className="px-6 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400 transition font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
               >

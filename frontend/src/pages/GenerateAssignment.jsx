@@ -6,6 +6,13 @@ const GenerateAssignment = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [postFormData, setPostFormData] = useState({
+    title: '',
+    dueDate: '',
+    totalMarks: 100
+  });
   const [formData, setFormData] = useState({
     classGrade: 6,
     topic: '',
@@ -60,6 +67,53 @@ const GenerateAssignment = () => {
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedContent);
     alert('Assignment copied to clipboard!');
+  };
+
+  const handlePostToClass = () => {
+    // Pre-fill the title with topic
+    setPostFormData(prev => ({
+      ...prev,
+      title: formData.topic || 'AI Generated Assignment'
+    }));
+    setShowPostModal(true);
+  };
+
+  const handlePostFormChange = (e) => {
+    const { name, value } = e.target;
+    setPostFormData(prev => ({
+      ...prev,
+      [name]: name === 'totalMarks' ? parseInt(value) : value
+    }));
+  };
+
+  const handleSubmitPost = async (e) => {
+    e.preventDefault();
+    setPosting(true);
+    
+    try {
+      const assignmentData = {
+        title: postFormData.title,
+        description: generatedContent,
+        classGrade: formData.classGrade,
+        dueDate: postFormData.dueDate,
+        totalMarks: postFormData.totalMarks,
+        fileUrl: null
+      };
+
+      await axios.post('/assignments', assignmentData);
+      alert('Assignment posted successfully to Class ' + formData.classGrade + '!');
+      setShowPostModal(false);
+      
+      // Optionally navigate to assignments page
+      setTimeout(() => {
+        navigate('/assignments');
+      }, 1000);
+      
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to post assignment');
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (
@@ -269,11 +323,24 @@ const GenerateAssignment = () => {
             </div>
 
             {generatedContent ? (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 min-h-[500px] max-h-[600px] overflow-y-auto">
-                <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                  {generatedContent}
-                </pre>
-              </div>
+              <>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 min-h-[400px] max-h-[500px] overflow-y-auto mb-4">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                    {generatedContent}
+                  </pre>
+                </div>
+                
+                {/* Post to Class Button */}
+                <button
+                  onClick={handlePostToClass}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Post Assignment to Class {formData.classGrade}
+                </button>
+              </>
             ) : (
               <div className="bg-gray-50 rounded-lg p-8 border-2 border-dashed border-gray-300 min-h-[500px] flex items-center justify-center">
                 <div className="text-center text-gray-500">
@@ -288,6 +355,102 @@ const GenerateAssignment = () => {
           </div>
         </div>
       </div>
+
+      {/* Post to Class Modal */}
+      {showPostModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Post Assignment to Class {formData.classGrade}</h3>
+            
+            <form onSubmit={handleSubmitPost} className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assignment Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={postFormData.title}
+                  onChange={handlePostFormChange}
+                  placeholder="e.g., Algebra Assignment"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Due Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  name="dueDate"
+                  value={postFormData.dueDate}
+                  onChange={handlePostFormChange}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Total Marks */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Total Marks
+                </label>
+                <input
+                  type="number"
+                  name="totalMarks"
+                  value={postFormData.totalMarks}
+                  onChange={handlePostFormChange}
+                  min="1"
+                  max="200"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Info */}
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  The generated assignment content will be posted as the assignment description. Students in Class {formData.classGrade} will be able to view and submit this assignment.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPostModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={posting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={posting}
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {posting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Posting...
+                    </>
+                  ) : (
+                    'Post Assignment'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

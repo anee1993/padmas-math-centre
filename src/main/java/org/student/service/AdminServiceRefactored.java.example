@@ -1,0 +1,226 @@
+package org.student.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.student.dto.EnrolledStudentDTO;
+import org.student.dto.PendingStudentDTO;
+import org.student.entity.StudentProfile;
+import org.student.entity.User;
+import org.student.exception.ResourceNotFoundException;
+import org.student.repository.AssignmentSubmissionRepository;
+import org.student.repository.PasswordResetTokenRepository;
+import org.student.repository.UserRepository;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * REFACTORED VERSION - Example of improved code organization
+ * 
+ * Improvements:
+ * 1. Extracted constants for error messages
+ * 2. Extracted validation methods
+ * 3. Extracted mapping methods
+ * 4. Added comprehensive JavaDoc
+ * 5. Improved method organization
+ */
+@Service
+public class AdminServiceRefactored {
+    
+    // Constants
+    private static final String ERROR_STUDENT_NOT_FOUND = "Student not found";
+    private static final String ERROR_NOT_STUDENT = "User is not a student";
+    private static final String ERROR_NOT_PENDING = "Registration is not in pending state";
+    
+    private final UserRepository userRepository;
+    private final AssignmentSubmissionRepository submissionRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    
+    public AdminServiceRefactored(UserRepository userRepository, 
+                                 AssignmentSubmissionRepository submissionRepository,
+                                 PasswordResetTokenRepository passwordResetTokenRepository) {
+        this.userRepository = userRepository;
+        this.submissionRepository = submissionRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+    }
+    
+    // ==================== Query Methods ====================
+    
+    /**
+     * Retrieves all pending student registrations awaiting approval.
+     * 
+     * @return List of pending student DTOs
+     */
+    public List<PendingStudentDTO> getPendingRegistrations() {
+        List<User> pendingUsers = userRepository.findByRoleAndStatus(
+            User.Role.STUDENT, 
+            User.RegistrationStatus.PENDING
+        );
+        
+        return mapToPendingStudentDTOs(pendingUsers);
+    }
+    
+    /**
+     * Retrieves all enrolled (approved) students sorted by class grade.
+     * 
+     * @return List of enrolled student DTOs sorted by class grade
+     */
+    public List<EnrolledStudentDTO> getEnrolledStudents() {
+        List<User> enrolledUsers = findApprovedStudents();
+        return mapToEnrolledStudentDTOs(enrolledUsers);
+    }
+    
+    /**
+     * Retrieves enrolled students filtered by specific class grade.
+     * 
+     * @param classGrade The class grade to filter by (6-10)
+     * @return List of enrolled student DTOs for the specified class
+     */
+    public List<EnrolledStudentDTO> getEnrolledStudentsByClass(Integer classGrade) {
+        List<User> enrolledUsers = findApprovedStudents();
+        
+        return enrolledUsers.stream()
+            .filter(user -> hasClassGrade(user, classGrade))
+            .map(this::mapToEnrolledStudentDTO)
+            .collect(Collectors.toList());
+    }
+    
+    // ==================== Command Methods ====================
+    
+    /**
+     * Approves a pending student registration.
+     * 
+     * @param studentId The ID of the student to approve
+     * @throws ResourceNotFoundException if student not found
+     * @throws IllegalArgumentException if user is not a student
+     * @throws IllegalStateException if registration is not pending
+     */
+    @Transactional
+    public void approveRegistration(Long studentId) {
+        User user = findUserById(studentId);
+        validateStudentUser(user);
+        validatePendingStatus(user);
+        
+        user.setStatus(User.RegistrationStatus.APPROVED);
+        userRepository.save(user);
+    }
+    
+    /**
+     * Rejects a pending student registration.
+     * 
+     * @param studentId The ID of the student to reject
+     * @param reason The reason for rejection
+     * @throws ResourceNotFoundException if student not found
+     * @throws IllegalArgumentException if user is not a student
+     * @throws IllegalStateException if registration is not pending
+     */
+    @Transactional
+    public void rejectRegistration(Long studentId, String reason) {
+        User user = findUserById(studentId);
+        validateStudentUser(user);
+        validatePendingStatus(user);
+        
+        user.setStatus(User.RegistrationStatus.REJECTED);
+        userRepository.save(user);
+    }
+    
+    /**
+     * Permanently deletes a student and all associated data.
+     * This includes:
+     * - Assignment submissions
+     * - Password reset tokens
+     * - Student profile (cascaded)
+     * 
+     * @param studentId The ID of the student to delete
+     * @throws ResourceNotFoundException if student not found
+     * @throws IllegalArgumentException if user is not a student
+     */
+    @Transactional
+    public void deleteStudent(Long studentId) {
+        User user = findUserById(studentId);
+        validateStudentUser(user);
+        
+        deleteStudentData(studentId, user.getEmail());
+        userRepository.delete(user);
+    }
+    
+    // ==================== Private Helper Methods ====================
+    
+    private List<User> findApprovedStudents() {
+        return userRepository.findByRoleAndStatus(
+            User.Role.STUDENT,
+            User.RegistrationStatus.APPROVED
+        );
+    }
+    
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException(ERROR_STUDENT_NOT_FOUND));
+    }
+    
+    private void deleteStudentData(Long studentId, String email) {
+        submissionRepository.deleteAll(submissionRepository.findByStudentId(studentId));
+        passwordResetTokenRepository.deleteByEmail(email);
+    }
+    
+    // ==================== Validation Methods ====================
+    
+    private void validateStudentUser(User user) {
+        if (user.getRole() != User.Role.STUDENT) {
+            throw new IllegalArgumentException(ERROR_NOT_STUDENT);
+        }
+    }
+    
+    private void validatePendingStatus(User user) {
+        if (user.getStatus() != User.RegistrationStatus.PENDING) {
+            throw new IllegalStateException(ERROR_NOT_PENDING);
+        }
+    }
+    
+    private boolean hasClassGrade(User user, Integer classGrade) {
+        return user.getStudentProfile() != null && 
+               user.getStudentProfile().getClassGrade().equals(classGrade);
+    }
+    
+    // ==================== Mapping Methods ====================
+    
+    private List<PendingStudentDTO> mapToPendingStudentDTOs(List<User> users) {
+        return users.stream()
+            .map(this::mapToPendingStudentDTO)
+            .collect(Collectors.toList());
+    }
+    
+    private PendingStudentDTO mapToPendingStudentDTO(User user) {
+        StudentProfile profile = user.getStudentProfile();
+        return new PendingStudentDTO(
+            user.getId(),
+            user.getEmail(),
+            profile.getFullName(),
+            profile.getDateOfBirth(),
+            profile.getGender(),
+            profile.getClassGrade(),
+            user.getCreatedAt()
+        );
+    }
+    
+    private List<EnrolledStudentDTO> mapToEnrolledStudentDTOs(List<User> users) {
+        return users.stream()
+            .map(this::mapToEnrolledStudentDTO)
+            .sorted(Comparator.comparing(EnrolledStudentDTO::getClassGrade))
+            .collect(Collectors.toList());
+    }
+    
+    private EnrolledStudentDTO mapToEnrolledStudentDTO(User user) {
+        StudentProfile profile = user.getStudentProfile();
+        return new EnrolledStudentDTO(
+            user.getId(),
+            user.getEmail(),
+            profile.getFullName(),
+            profile.getDateOfBirth(),
+            profile.getGender(),
+            profile.getClassGrade(),
+            user.getUpdatedAt()
+        );
+    }
+}

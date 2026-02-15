@@ -254,12 +254,13 @@ const TeacherDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <nav className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-4 shadow-lg">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm">{user?.email} ({user?.role})</span>
+          <h1 className="text-lg md:text-2xl font-bold">Teacher Dashboard</h1>
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-xs md:text-sm hidden sm:inline">{user?.email}</span>
+            <span className="text-xs md:text-sm sm:hidden">{user?.role}</span>
             <button
               onClick={logout}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded transition backdrop-blur-sm"
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 md:px-4 md:py-2 rounded transition backdrop-blur-sm text-sm"
             >
               Logout
             </button>
@@ -268,16 +269,31 @@ const TeacherDashboard = () => {
       </nav>
 
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-8 shadow-lg">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-6 md:py-8 shadow-lg">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-4xl font-bold mb-2">
+              <h2 className="text-2xl md:text-4xl font-bold mb-2">
                 Welcome, {user?.fullName || 'Teacher'}! 👋
               </h2>
-              <p className="text-lg opacity-90">
+              <p className="text-sm md:text-lg opacity-90">
                 Ready to inspire young minds today?
               </p>
+            </div>
+            {/* Stats - Show on mobile as row, desktop as column */}
+            <div className="flex md:hidden gap-3 w-full">
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3 text-center flex-1">
+                <p className="text-xl font-bold">{pendingStudents.length}</p>
+                <p className="text-xs opacity-90">Pending</p>
+              </div>
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3 text-center flex-1">
+                <p className="text-xl font-bold">{enrolledStudents.length}</p>
+                <p className="text-xs opacity-90">Students</p>
+              </div>
+              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-3 text-center flex-1">
+                <p className="text-xl font-bold">5</p>
+                <p className="text-xs opacity-90">Classes</p>
+              </div>
             </div>
             <div className="hidden md:flex items-center gap-4">
               <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
@@ -297,7 +313,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 md:p-6">
         {message && (
           <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded">
             {message}
@@ -305,50 +321,50 @@ const TeacherDashboard = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+        <div className="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+          <div className="border-b border-gray-200 overflow-x-auto">
+            <nav className="flex -mb-px min-w-max">
               <button
                 onClick={() => setActiveTab('pending')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'pending'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Pending Requests
+                Pending
                 {pendingStudents.length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                     {pendingStudents.length}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveTab('enrolled')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'enrolled'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Enrolled Students
+                Students
                 <span className="ml-2 text-xs text-gray-500">
                   ({enrolledStudents.length})
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab('classrooms')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'classrooms'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Virtual Classrooms
+                Classrooms
               </button>
               <button
                 onClick={() => setActiveTab('assignments')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'assignments'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -358,27 +374,27 @@ const TeacherDashboard = () => {
               </button>
               <button
                 onClick={() => setActiveTab('materials')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'materials'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Learning Materials
+                Materials
               </button>
               <button
                 onClick={() => setActiveTab('queries')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'queries'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Queries & Discussions
+                Queries
               </button>
               <button
                 onClick={() => setActiveTab('timetable')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition ${
+                className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium border-b-2 transition whitespace-nowrap ${
                   activeTab === 'timetable'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -389,7 +405,7 @@ const TeacherDashboard = () => {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {loading ? (
               <p className="text-gray-600">Loading...</p>
             ) : activeTab === 'pending' ? (

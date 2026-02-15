@@ -102,8 +102,7 @@ const Assignments = () => {
               {assignments.map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer"
-                  onClick={() => viewAssignment(assignment.id)}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -116,6 +115,27 @@ const Assignments = () => {
                         <span>•</span>
                         <span>Due: {new Date(assignment.dueDate).toLocaleString()}</span>
                       </div>
+                      
+                      {/* Graded Status for Students */}
+                      {user.role === 'STUDENT' && assignment.isGraded && (
+                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-semibold text-green-800">
+                              ✅ Graded - Click "View Details" to see your marks and feedback
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <button
+                        onClick={() => viewAssignment(assignment.id)}
+                        className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition text-sm"
+                      >
+                        View Details
+                      </button>
                     </div>
                     <div className="ml-4">
                       {user.role === 'STUDENT' && getStatusBadge(assignment)}

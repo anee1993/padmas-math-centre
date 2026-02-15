@@ -155,18 +155,44 @@ const Submissions = () => {
                                         Late
                                       </span>
                                     )}
+                                    {submission.status === 'GRADED' && (
+                                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded font-semibold">
+                                        ✓ Graded
+                                      </span>
+                                    )}
                                   </div>
                                   <p className="text-sm text-gray-600">{submission.studentEmail}</p>
                                   <p className="text-xs text-gray-500 mt-1">
                                     Submitted: {formatDate(submission.submittedAt)}
                                   </p>
+                                  
+                                  {/* Show grading info if graded */}
+                                  {submission.status === 'GRADED' && (
+                                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                                      <p className="text-sm font-semibold text-green-800">
+                                        Score: {submission.marksObtained}/{assignment.totalMarks} marks
+                                      </p>
+                                      {submission.feedback && (
+                                        <p className="text-xs text-green-700 mt-1 italic">
+                                          Feedback provided
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
-                                <button
-                                  onClick={() => navigate(`/assignments/${assignment.id}`)}
-                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm transition"
-                                >
-                                  View Details
-                                </button>
+                                <div className="ml-4 flex flex-col gap-2">
+                                  <button
+                                    onClick={() => navigate(`/assignments/${assignment.id}`)}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm transition whitespace-nowrap"
+                                  >
+                                    View Details
+                                  </button>
+                                  {submission.status !== 'GRADED' && (
+                                    <span className="text-xs text-orange-600 font-medium text-center">
+                                      Needs Grading
+                                    </span>
+                                  )}
+                                </div>
                               </div>
 
                               {submission.submissionText && (

@@ -36,11 +36,6 @@ public class LateSubmissionService {
         Assignment assignment = assignmentRepository.findById(request.getAssignmentId())
             .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
         
-        // Check if assignment is overdue
-        if (!LocalDateTime.now().isAfter(assignment.getDueDate())) {
-            throw new IllegalStateException("Assignment is not yet overdue");
-        }
-        
         // Check if request already exists
         requestRepository.findByAssignmentIdAndStudentId(request.getAssignmentId(), studentId)
             .ifPresent(r -> {

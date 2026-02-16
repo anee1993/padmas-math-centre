@@ -97,8 +97,16 @@ Make sure your backend is using the correct Supabase service role key:
 1. Go to Supabase Dashboard → Settings → API
 2. Copy the **service_role** key (NOT the anon key)
 3. Update your Railway environment variables:
-   - Variable name: `SUPABASE_SERVICE_KEY`
+   - Variable name: `SUPABASE_KEY`
    - Value: Your service_role key (starts with `eyJ...`)
+
+**CRITICAL**: The current key in your `.env` is the `anon` key which respects RLS policies. You MUST use the `service_role` key for backend operations to bypass RLS and avoid 403 errors.
+
+### How to identify which key you have:
+- Decode the JWT at https://jwt.io
+- Look for the `"role"` field:
+  - `"role": "anon"` ❌ Wrong key - will cause 403 errors
+  - `"role": "service_role"` ✅ Correct key - bypasses RLS
 
 ---
 

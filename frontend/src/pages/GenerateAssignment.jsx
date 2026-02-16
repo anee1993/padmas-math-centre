@@ -91,10 +91,8 @@ const GenerateAssignment = () => {
     setPosting(true);
     
     try {
-      // Convert date string to LocalDateTime format (ISO 8601)
-      const dueDateObj = new Date(postFormData.dueDate);
-      dueDateObj.setHours(23, 59, 59); // Set to end of day
-      const dueDateISO = dueDateObj.toISOString();
+      // Convert datetime-local value to ISO format
+      const dueDateISO = new Date(postFormData.dueDate).toISOString();
       
       const assignmentData = {
         title: postFormData.title,
@@ -391,17 +389,20 @@ const GenerateAssignment = () => {
               {/* Due Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date
+                  Due Date & Time *
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   name="dueDate"
                   value={postFormData.dueDate}
                   onChange={handlePostFormChange}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().slice(0, 16)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Set the exact date and time when the assignment is due
+                </p>
               </div>
 
               {/* Total Marks */}

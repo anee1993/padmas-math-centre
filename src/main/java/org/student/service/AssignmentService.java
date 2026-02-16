@@ -96,12 +96,6 @@ public class AssignmentService {
     
     @Transactional
     public SubmissionDTO submitAssignment(SubmitAssignmentRequest request, Long studentId) {
-        // Validate that at least one content field is provided
-        if (!request.hasContent()) {
-            throw new IllegalArgumentException(
-                "Please provide either submission text or an attachment URL/file");
-        }
-        
         Assignment assignment = assignmentRepository.findById(request.getAssignmentId())
             .orElseThrow(() -> new ResourceNotFoundException("Assignment not found"));
         

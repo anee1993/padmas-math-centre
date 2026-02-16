@@ -149,9 +149,13 @@ const Register = () => {
               name="dateOfBirth"
               value={formData.dateOfBirth}
               onChange={handleChange}
+              max={new Date().toISOString().split('T')[0]}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              You must be born before today 😊
+            </p>
             {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
           </div>
 

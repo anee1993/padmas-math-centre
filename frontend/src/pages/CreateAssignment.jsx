@@ -214,9 +214,13 @@ const CreateAssignment = () => {
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
+                min={new Date().toISOString().slice(0, 16)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Set the exact date and time when the assignment is due
+              </p>
               {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
             </div>
 

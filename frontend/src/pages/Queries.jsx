@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
+import { formatDateIST } from '../utils/dateUtils';
 
 const Queries = () => {
   const { user, logout } = useAuth();
@@ -181,7 +182,7 @@ const Queries = () => {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-gray-800">{query.title}</h3>
                     <span className="text-xs text-gray-500">
-                      {new Date(query.createdAt).toLocaleDateString()}
+                      {formatDateIST(query.createdAt)}
                     </span>
                   </div>
                   <p className="text-gray-600 mb-2 line-clamp-2">{query.content}</p>

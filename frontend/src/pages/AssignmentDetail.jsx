@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from '../api/axios';
+import { formatToIST } from '../utils/dateUtils';
 
 const AssignmentDetail = () => {
   const { user, logout } = useAuth();
@@ -240,7 +241,7 @@ const AssignmentDetail = () => {
                 <span>{assignment.totalMarks} marks</span>
                 <span>•</span>
                 <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-                  Due: {new Date(assignment.dueDate).toLocaleString()}
+                  Due: {formatToIST(assignment.dueDate)}
                 </span>
               </div>
             </div>
@@ -283,7 +284,7 @@ const AssignmentDetail = () => {
               <div className="bg-green-50 border border-green-200 rounded p-4">
                 <p className="text-green-800 font-semibold mb-2">✓ Submitted</p>
                 <p className="text-sm text-gray-600 mb-2">
-                  Submitted on: {new Date(submission.submittedAt).toLocaleString()}
+                  Submitted on: {formatToIST(submission.submittedAt)}
                 </p>
                 {submission.isLate && (
                   <p className="text-sm text-red-600 mb-2">⚠ Late Submission</p>
@@ -365,11 +366,11 @@ const AssignmentDetail = () => {
                           <span className="font-medium">Your reason:</span> {lateSubmissionRequest.reason}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Requested: {new Date(lateSubmissionRequest.requestedAt).toLocaleString()}
+                          Requested: {formatToIST(lateSubmissionRequest.requestedAt)}
                         </p>
                         {lateSubmissionRequest.respondedAt && (
                           <p className="text-xs text-gray-600">
-                            Responded: {new Date(lateSubmissionRequest.respondedAt).toLocaleString()}
+                            Responded: {formatToIST(lateSubmissionRequest.respondedAt)}
                           </p>
                         )}
                         {lateSubmissionRequest.teacherResponse && (
@@ -637,7 +638,7 @@ const SubmissionCard = ({ submission, assignment, onGradeUpdate }) => {
           <p className="font-semibold text-gray-800">{submission.studentName}</p>
           <p className="text-sm text-gray-600">{submission.studentEmail}</p>
           <p className="text-xs text-gray-500 mt-1">
-            Submitted: {new Date(submission.submittedAt).toLocaleString()}
+            Submitted: {formatToIST(submission.submittedAt)}
           </p>
         </div>
         <div className="text-right">

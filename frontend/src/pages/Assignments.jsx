@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from '../api/axios';
+import { formatToIST } from '../utils/dateUtils';
 
 const Assignments = () => {
   const { user, logout } = useAuth();
@@ -113,7 +114,7 @@ const Assignments = () => {
                         <span>•</span>
                         <span>{assignment.totalMarks} marks</span>
                         <span>•</span>
-                        <span>Due: {new Date(assignment.dueDate).toLocaleString()}</span>
+                        <span>Due: {formatToIST(assignment.dueDate)}</span>
                       </div>
                       
                       {/* Graded Status for Students */}

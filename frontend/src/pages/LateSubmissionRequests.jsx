@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from '../api/axios';
+import { formatToIST } from '../utils/dateUtils';
 
 const LateSubmissionRequests = () => {
   const { user, logout } = useAuth();
@@ -63,7 +64,7 @@ const LateSubmissionRequests = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+    return formatToIST(dateString);
   };
 
   return (

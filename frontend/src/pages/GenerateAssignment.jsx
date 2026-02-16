@@ -7,6 +7,7 @@ const GenerateAssignment = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postFormData, setPostFormData] = useState({
@@ -309,6 +310,19 @@ const GenerateAssignment = () => {
               {generatedContent && (
                 <div className="flex gap-2">
                   <button
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center ${
+                      isEditing 
+                        ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    {isEditing ? 'Preview' : 'Edit'}
+                  </button>
+                  <button
                     onClick={handleCopy}
                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center"
                   >
@@ -332,11 +346,25 @@ const GenerateAssignment = () => {
 
             {generatedContent ? (
               <>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 min-h-[400px] max-h-[500px] overflow-y-auto mb-4">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                    {generatedContent}
-                  </pre>
-                </div>
+                {isEditing ? (
+                  <div className="mb-4">
+                    <textarea
+                      value={generatedContent}
+                      onChange={(e) => setGeneratedContent(e.target.value)}
+                      className="w-full h-[500px] p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm text-gray-800 resize-none"
+                      placeholder="Edit your assignment content here..."
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      💡 Tip: You can edit the generated content before posting to class
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 min-h-[400px] max-h-[500px] overflow-y-auto mb-4">
+                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                      {generatedContent}
+                    </pre>
+                  </div>
+                )}
                 
                 {/* Post to Class Button */}
                 <button

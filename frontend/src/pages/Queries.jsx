@@ -2,7 +2,18 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import { formatDateIST } from '../utils/dateUtils';
+
+// Format date to IST timezone (date only, no time)
+const formatDateIST = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }).format(date);
+};
 
 const Queries = () => {
   const { user, logout } = useAuth();

@@ -1,7 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
-import { convertLocalDateTimeToISTISO } from '../utils/dateUtils';
+
+// Convert datetime-local input to IST ISO string
+const convertLocalDateTimeToISTISO = (datetimeLocalValue) => {
+  if (!datetimeLocalValue) return '';
+  const localDate = new Date(datetimeLocalValue);
+  const year = localDate.getFullYear();
+  const month = localDate.getMonth();
+  const date = localDate.getDate();
+  const hours = localDate.getHours();
+  const minutes = localDate.getMinutes();
+  const istDateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00+05:30`;
+  return new Date(istDateString).toISOString();
+};
 
 const GenerateAssignment = () => {
   const navigate = useNavigate();

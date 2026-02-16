@@ -112,6 +112,13 @@ const AssignmentDetail = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate that at least one content field is provided
+    if (!formData.submissionText.trim() && !formData.attachmentUrl.trim() && !selectedFile) {
+      setMessage('Please provide either submission text, an attachment URL, or upload a file');
+      return;
+    }
+    
     setSubmitting(true);
     setMessage('');
 

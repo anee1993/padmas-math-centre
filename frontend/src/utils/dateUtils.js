@@ -142,3 +142,30 @@ export const isOverdueIST = (dateString) => {
   
   return istDate < istNow;
 };
+
+/**
+ * Convert datetime-local input value to ISO string treating it as IST
+ * This is used when teachers set assignment due dates
+ * @param {string} datetimeLocalValue - Value from datetime-local input (e.g., "2026-02-20T23:59")
+ * @returns {string} ISO string in UTC
+ */
+export const convertLocalDateTimeToISTISO = (datetimeLocalValue) => {
+  if (!datetimeLocalValue) return '';
+  
+  // The datetime-local input gives us a string like "2026-02-20T23:59"
+  // We need to treat this as IST time and convert to UTC for storage
+  const localDate = new Date(datetimeLocalValue);
+  
+  // Get the date components
+  const year = localDate.getFullYear();
+  const month = localDate.getMonth();
+  const date = localDate.getDate();
+  const hours = localDate.getHours();
+  const minutes = localDate.getMinutes();
+  
+  // Create a date string in IST format (UTC+5:30) and convert to UTC
+  const istDateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00+05:30`;
+  const utcDate = new Date(istDateString);
+  
+  return utcDate.toISOString();
+};

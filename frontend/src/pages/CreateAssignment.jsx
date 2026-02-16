@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from '../api/axios';
+import { convertLocalDateTimeToISTISO } from '../utils/dateUtils';
 
 const CreateAssignment = () => {
   const { user, logout } = useAuth();
@@ -82,11 +83,13 @@ const CreateAssignment = () => {
         fileUrl = await uploadFile();
       }
 
-      // Convert dueDate to ISO format
+      // Convert dueDate from datetime-local to ISO format (treating input as IST)
+      const dueDateISO = convertLocalDateTimeToISTISO(formData.dueDate);
+
       const payload = {
         ...formData,
         attachmentUrl: fileUrl,
-        dueDate: new Date(formData.dueDate).toISOString()
+        dueDate: dueDateISO
       };
 
       await axios.post('/assignments', payload);

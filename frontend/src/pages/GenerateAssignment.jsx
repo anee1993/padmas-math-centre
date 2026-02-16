@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
+import { convertLocalDateTimeToISTISO } from '../utils/dateUtils';
 
 const GenerateAssignment = () => {
   const navigate = useNavigate();
@@ -91,8 +92,8 @@ const GenerateAssignment = () => {
     setPosting(true);
     
     try {
-      // Convert datetime-local value to ISO format
-      const dueDateISO = new Date(postFormData.dueDate).toISOString();
+      // Convert datetime-local value from IST to ISO format
+      const dueDateISO = convertLocalDateTimeToISTISO(postFormData.dueDate);
       
       const assignmentData = {
         title: postFormData.title,

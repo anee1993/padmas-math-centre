@@ -10,6 +10,7 @@ const Assignments = () => {
   const [assignments, setAssignments] = useState([]);
   const [studentProfile, setStudentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedClass, setSelectedClass] = useState('all');
 
   useEffect(() => {
     fetchData();
@@ -32,6 +33,31 @@ const Assignments = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Group assignments by class for teachers
+  const groupedAssignments = () => {
+    if (user.role === 'STUDENT') return { [studentProfile?.classGrade]: assignments };
+    
+    const grouped = {};
+    assignments.forEach(assignment => {
+      const classGrade = assignment.classGrade;
+      if (!grouped[classGrade]) {
+        grouped[classGrade] = [];
+      }
+      grouped[classGrade].push(assignment);
+    });
+    return grouped;
+  };
+
+  // Filter assignments by selected class
+  const getFilteredAssignments = () => {
+    if (selectedClass === 'all') return assignments;
+    return assignments.filter(a => a.classGrade === parseInt(selectedClass));
+  };
+
+  const getClassCount = (classGrade) => {
+    return assignments.filter(a => a.classGrade === classGrade).length;
   };
 
   const viewAssignment = (id) => {
@@ -94,13 +120,48 @@ const Assignments = () => {
             )}
           </div>
 
+          {/* Class Filter for Teachers */}
+          {user.role === 'TEACHER' && assignments.length > 0 && (
+            <div className="mb-6">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setSelectedClass('all')}
+                  className={`px-4 py-2 rounded-lg transition ${
+                    selectedClass === 'all'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  All Classes ({assignments.length})
+                </button>
+                {[6, 7, 8, 9, 10].map(classGrade => {
+                  const count = getClassCount(classGrade);
+                  if (count === 0) return null;
+                  return (
+                    <button
+                      key={classGrade}
+                      onClick={() => setSelectedClass(classGrade.toString())}
+                      className={`px-4 py-2 rounded-lg transition ${
+                        selectedClass === classGrade.toString()
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Class {classGrade} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <p className="text-gray-600">Loading...</p>
           ) : assignments.length === 0 ? (
             <p className="text-gray-600">No assignments found</p>
           ) : (
             <div className="space-y-4">
-              {assignments.map((assignment) => (
+              {(user.role === 'TEACHER' ? getFilteredAssignments() : assignments).map((assignment) => (
                 <div
                   key={assignment.id}
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"

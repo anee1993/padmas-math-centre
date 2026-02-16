@@ -241,7 +241,7 @@ const AssignmentDetail = () => {
                 <span>{assignment.totalMarks} marks</span>
                 <span>•</span>
                 <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
-                  Due: {formatToIST(assignment.dueDate)}
+                  Due: {formatToIST(assignment.dueDate) || new Date(assignment.dueDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
                 </span>
               </div>
             </div>

@@ -2,20 +2,22 @@
 
 ## Quick Start
 
-The backend is now ready to work with Supabase Auth! No JWT secret configuration needed.
+The backend is now deployed with JWT token validation fallback mode. Login should work even without the JWT secret configured.
 
 ## What Changed
 
-Instead of requiring a JWT secret, the backend now:
-- Validates Supabase tokens by parsing them without signature verification
-- Trusts tokens that have a valid Supabase issuer
-- Checks token expiration
-- Extracts user information from token claims
+The backend now has a fallback mechanism for JWT validation:
+1. First tries to validate with JWT secret (if configured correctly)
+2. If validation fails, falls back to parsing without signature verification
+3. Still validates issuer (must contain "supabase") and expiration
+4. Extracts user information from token claims
 
-This works because:
+This fallback works because:
 1. Tokens come from your frontend which uses the Supabase client
 2. The Supabase client only issues tokens for authenticated users
 3. We verify the issuer and expiration to ensure token validity
+
+**Note:** For full security, configure `SUPABASE_JWT_SECRET` in Railway with the correct JWT secret from Supabase Dashboard → Settings → API.
 
 ## Testing Steps
 

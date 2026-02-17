@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       
       const userData = {
         email,
-        role,
+        role: profile.role || role, // Use role from backend profile
         token,
         supabaseUserId,
         fullName: profile.fullName,
@@ -59,25 +59,33 @@ export const AuthProvider = ({ children }) => {
       
       setUser(userData);
       
-      // Navigate based on role
-      if (role === 'TEACHER') {
+      // Navigate based on role from backend
+      if (userData.role === 'TEACHER') {
         navigate('/teacher/dashboard');
       } else if (profile.approvalStatus === 'APPROVED') {
         navigate('/student/dashboard');
       } else {
-        // Student not approved yet - stay on current page or show pending message
+        // Student not approved yet
         navigate('/pending-approval');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
       // If profile doesn't exist yet, use basic info from Supabase
+      const role = session.user.user_metadata?.role || 'STUDENT';
       const userData = {
         email: session.user.email,
-        role: session.user.user_metadata?.role || 'STUDENT',
+        role,
         token: session.access_token,
         supabaseUserId: session.user.id,
-        approvalStatus: 'PENDING'
+        approvalStatus: role === 'TEACHER' ? 'APPROVED' : 'PENDING'
       };
+      setUser(userData);
+      
+      if (role === 'TEACHER') {
+        navigate('/teacher/dashboard');
+      } else {
+        navigate('/pending-approval');
+      }
       setUser(userData);
       
       if (userData.role === 'STUDENT') {

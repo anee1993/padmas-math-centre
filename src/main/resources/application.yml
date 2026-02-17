@@ -49,6 +49,8 @@ jwt:
 supabase:
   url: ${SUPABASE_URL:https://bvtawdcbfkwbklhhovre.supabase.co}
   key: ${SUPABASE_KEY}
+  jwt:
+    secret: ${SUPABASE_JWT_SECRET:}
 
 # Email Configuration
 mail:

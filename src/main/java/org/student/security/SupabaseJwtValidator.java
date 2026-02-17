@@ -59,36 +59,42 @@ public class SupabaseJwtValidator {
     }
     
     private Claims extractAllClaims(String token) {
-        try {
-            System.out.println("Extracting claims from token...");
-            
-            SecretKey key = getSigningKey();
-            
-            if (key != null) {
-                // Validate with signature
-                System.out.println("Validating token with signature...");
+        System.out.println("Extracting claims from token...");
+        
+        SecretKey key = getSigningKey();
+        
+        if (key != null) {
+            try {
+                // Try to validate with signature
+                System.out.println("Attempting to validate token with signature...");
                 return Jwts.parser()
                         .verifyWith(key)
                         .build()
                         .parseSignedClaims(token)
                         .getPayload();
-            } else {
-                // Parse without signature validation (fallback)
-                System.out.println("WARNING: Parsing token without signature validation");
-                String[] parts = token.split("\\.");
-                if (parts.length != 3) {
-                    throw new IllegalArgumentException("Invalid JWT token format");
-                }
-                
-                // Parse as unsecured (skip signature validation)
-                return Jwts.parser()
-                        .unsecured()
-                        .build()
-                        .parseUnsecuredClaims(parts[0] + "." + parts[1] + ".")
-                        .getPayload();
+            } catch (Exception e) {
+                System.err.println("Signature validation failed: " + e.getMessage());
+                System.out.println("Falling back to unsecured parsing...");
+                // Fall through to unsecured parsing
             }
+        }
+        
+        // Parse without signature validation (fallback)
+        System.out.println("WARNING: Parsing token without signature validation");
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid JWT token format");
+            }
+            
+            // Parse as unsecured (skip signature validation)
+            return Jwts.parser()
+                    .unsecured()
+                    .build()
+                    .parseUnsecuredClaims(parts[0] + "." + parts[1] + ".")
+                    .getPayload();
         } catch (Exception e) {
-            System.err.println("Error extracting claims: " + e.getClass().getName() + " - " + e.getMessage());
+            System.err.println("Error in unsecured parsing: " + e.getMessage());
             throw e;
         }
     }

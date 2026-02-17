@@ -1,5 +1,6 @@
 package org.student.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,10 @@ public class SubmissionDTO {
     private String studentEmail;
     private String submissionText;
     private String attachmentUrl;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime submittedAt;
+    
     private AssignmentSubmission.SubmissionStatus status;
     private Boolean isLate;
     private Integer marksObtained;

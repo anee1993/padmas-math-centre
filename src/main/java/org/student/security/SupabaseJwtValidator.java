@@ -43,24 +43,37 @@ public class SupabaseJwtValidator {
     }
     
     private Claims extractAllClaims(String token) {
-        // Parse JWT without signature verification
-        // We trust Supabase tokens and verify by checking issuer and expiration
-        String[] parts = token.split("\\.");
-        if (parts.length != 3) {
-            throw new IllegalArgumentException("Invalid JWT token");
+        try {
+            System.out.println("Extracting claims from token...");
+            // Parse JWT without signature verification
+            // We trust Supabase tokens and verify by checking issuer and expiration
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid JWT token format - expected 3 parts, got " + parts.length);
+            }
+            
+            System.out.println("Token has 3 parts, parsing...");
+            
+            // Decode payload (base64url)
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            System.out.println("Decoded payload: " + payload.substring(0, Math.min(100, payload.length())) + "...");
+            
+            // Parse as unsecured JWT
+            String unsecuredToken = parts[0] + "." + parts[1] + ".";
+            
+            Claims claims = Jwts.parser()
+                    .unsecured()
+                    .build()
+                    .parseUnsecuredClaims(unsecuredToken)
+                    .getPayload();
+            
+            System.out.println("Successfully parsed claims");
+            return claims;
+        } catch (Exception e) {
+            System.err.println("Error extracting claims: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-        
-        // Decode payload (base64url)
-        String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-        
-        // Parse as unsecured JWT
-        String unsecuredToken = parts[0] + "." + parts[1] + ".";
-        
-        return Jwts.parser()
-                .unsecured()
-                .build()
-                .parseUnsecuredClaims(unsecuredToken)
-                .getPayload();
     }
     
     public boolean isTokenExpired(String token) {
@@ -74,21 +87,30 @@ public class SupabaseJwtValidator {
     
     public boolean validateToken(String token) {
         try {
+            System.out.println("Starting token validation...");
             Claims claims = extractAllClaims(token);
+            System.out.println("Successfully extracted claims");
             
             // Verify issuer
             String issuer = claims.getIssuer();
+            System.out.println("Token issuer: " + issuer);
+            
             if (issuer == null || !issuer.contains("supabase")) {
+                System.err.println("Invalid issuer: " + issuer);
                 return false;
             }
             
             // Check expiration
             if (isTokenExpired(token)) {
+                System.err.println("Token is expired");
                 return false;
             }
             
+            System.out.println("Token validation successful");
             return true;
         } catch (Exception e) {
+            System.err.println("Token validation error: " + e.getClass().getName() + " - " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

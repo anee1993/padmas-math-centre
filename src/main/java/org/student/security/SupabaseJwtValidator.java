@@ -2,10 +2,12 @@ package org.student.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
@@ -13,6 +15,20 @@ public class SupabaseJwtValidator {
     
     @Value("${supabase.url}")
     private String supabaseUrl;
+    
+    // Supabase uses the same secret for signing JWTs
+    // This is the JWT_SECRET from Supabase dashboard, NOT the anon or service_role key
+    @Value("${supabase.jwt.secret:}")
+    private String jwtSecret;
+    
+    private SecretKey getSigningKey() {
+        // If no JWT secret is configured, we can't validate signatures
+        // For now, we'll skip signature validation (not recommended for production)
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            return null;
+        }
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
     
     public String extractUserId(String token) {
         try {
@@ -45,33 +61,34 @@ public class SupabaseJwtValidator {
     private Claims extractAllClaims(String token) {
         try {
             System.out.println("Extracting claims from token...");
-            // Parse JWT without signature verification
-            // We trust Supabase tokens and verify by checking issuer and expiration
-            String[] parts = token.split("\\.");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid JWT token format - expected 3 parts, got " + parts.length);
+            
+            SecretKey key = getSigningKey();
+            
+            if (key != null) {
+                // Validate with signature
+                System.out.println("Validating token with signature...");
+                return Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+            } else {
+                // Parse without signature validation (fallback)
+                System.out.println("WARNING: Parsing token without signature validation");
+                String[] parts = token.split("\\.");
+                if (parts.length != 3) {
+                    throw new IllegalArgumentException("Invalid JWT token format");
+                }
+                
+                // Parse as unsecured (skip signature validation)
+                return Jwts.parser()
+                        .unsecured()
+                        .build()
+                        .parseUnsecuredClaims(parts[0] + "." + parts[1] + ".")
+                        .getPayload();
             }
-            
-            System.out.println("Token has 3 parts, parsing...");
-            
-            // Decode payload (base64url)
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-            System.out.println("Decoded payload: " + payload.substring(0, Math.min(100, payload.length())) + "...");
-            
-            // Parse as unsecured JWT
-            String unsecuredToken = parts[0] + "." + parts[1] + ".";
-            
-            Claims claims = Jwts.parser()
-                    .unsecured()
-                    .build()
-                    .parseUnsecuredClaims(unsecuredToken)
-                    .getPayload();
-            
-            System.out.println("Successfully parsed claims");
-            return claims;
         } catch (Exception e) {
             System.err.println("Error extracting claims: " + e.getClass().getName() + " - " + e.getMessage());
-            e.printStackTrace();
             throw e;
         }
     }

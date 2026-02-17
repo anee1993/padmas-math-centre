@@ -20,6 +20,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(unique = true)
+    private String supabaseUserId;
+    
     @Column(unique = true, nullable = false)
     private String email;
     

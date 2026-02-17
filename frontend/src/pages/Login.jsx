@@ -35,12 +35,11 @@ const Login = () => {
     setIsLoggingIn(true);
 
     try {
-      const response = await axios.post('/auth/login', formData);
-      const { token, email, role, fullName } = response.data;
-      console.log('Login response:', { token, email, role, fullName }); // Debug log
-      login(token, email, role, fullName);
+      await login(formData.email, formData.password);
+      // Navigation handled by AuthContext after loading profile
     } catch (error) {
-      setError(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      setError(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoggingIn(false);
     }

@@ -58,7 +58,7 @@ const AssignmentDetail = () => {
         try {
           const submissionRes = await axios.get(`/assignments/${id}/my-submission`);
           setSubmission(submissionRes.data);
-        } catch (error) {
+        } catch {
           // No submission yet
           setSubmission(null);
         }
@@ -67,7 +67,7 @@ const AssignmentDetail = () => {
         try {
           const lateRequestRes = await axios.get(`/late-submissions/assignment/${id}/my-request`);
           setLateSubmissionRequest(lateRequestRes.data);
-        } catch (error) {
+        } catch {
           // No late request
           setLateSubmissionRequest(null);
         }
@@ -75,7 +75,7 @@ const AssignmentDetail = () => {
         const submissionsRes = await axios.get(`/assignments/${id}/submissions`);
         setSubmissions(submissionsRes.data);
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to load assignment');
     } finally {
       setLoading(false);
@@ -171,7 +171,7 @@ const AssignmentDetail = () => {
     try {
       await axios.delete(`/assignments/${id}`);
       navigate('/assignments');
-    } catch (error) {
+    } catch {
       setMessage('Failed to delete assignment');
     }
   };
@@ -217,8 +217,6 @@ const AssignmentDetail = () => {
   }
 
   const isOverdue = new Date() > new Date(assignment.dueDate);
-  const canSubmit = user.role === 'STUDENT' && !submission && !isOverdue;
-  const canRequestLate = user.role === 'STUDENT' && !submission && isOverdue && !lateSubmissionRequest;
   const hasApprovedLateRequest = lateSubmissionRequest?.status === 'APPROVED';
 
   return (

@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.student.entity.User;
+import org.student.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -17,10 +19,12 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
-    private final JwtUtil jwtUtil;
+    private final SupabaseJwtValidator supabaseJwtValidator;
+    private final UserRepository userRepository;
     
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public JwtAuthenticationFilter(SupabaseJwtValidator supabaseJwtValidator, UserRepository userRepository) {
+        this.supabaseJwtValidator = supabaseJwtValidator;
+        this.userRepository = userRepository;
     }
     
     @Override
@@ -36,18 +40,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         try {
             final String jwt = authHeader.substring(7);
-            final String email = jwtUtil.extractEmail(jwt);
-            final String role = jwtUtil.extractRole(jwt);
             
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (jwtUtil.validateToken(jwt, email)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (supabaseJwtValidator.validateToken(jwt)) {
+                final String supabaseUserId = supabaseJwtValidator.extractUserId(jwt);
+                
+                if (supabaseUserId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    // Load user from database
+                    User user = userRepository.findBySupabaseUserId(supabaseUserId).orElse(null);
+                    
+                    if (user != null) {
+                        String role = user.getRole().name();
+                        
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                supabaseUserId,
+                                null,
+                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                        );
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
             }
         } catch (Exception e) {

@@ -18,6 +18,9 @@ public class StudentProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(unique = true)
+    private String supabaseUserId;
+    
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

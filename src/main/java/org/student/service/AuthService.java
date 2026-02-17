@@ -3,10 +3,7 @@ package org.student.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.student.dto.LoginRequest;
-import org.student.dto.LoginResponse;
-import org.student.dto.StudentRegistrationRequest;
-import org.student.dto.StudentRegistrationResponse;
+import org.student.dto.*;
 import org.student.entity.StudentProfile;
 import org.student.entity.User;
 import org.student.exception.AuthenticationException;
@@ -33,6 +30,71 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
     
+    // New method for Supabase Auth
+    @Transactional
+    public ApiResponse createProfile(CreateProfileRequest request) {
+        // Check if profile already exists
+        if (userRepository.findBySupabaseUserId(request.getSupabaseUserId()).isPresent()) {
+            throw new RegistrationException("Profile already exists for this user");
+        }
+        
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RegistrationException("Email already registered");
+        }
+        
+        User user = new User();
+        user.setSupabaseUserId(request.getSupabaseUserId());
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPasswordHash(""); // Not used with Supabase Auth
+        user.setRole(User.Role.valueOf(request.getRole()));
+        
+        // Students need approval, teachers are auto-approved
+        if (user.getRole() == User.Role.STUDENT) {
+            user.setStatus(User.RegistrationStatus.PENDING);
+        } else {
+            user.setStatus(User.RegistrationStatus.APPROVED);
+        }
+        
+        User savedUser = userRepository.save(user);
+        
+        // Create student profile if role is STUDENT
+        if (user.getRole() == User.Role.STUDENT) {
+            StudentProfile profile = new StudentProfile();
+            profile.setSupabaseUserId(request.getSupabaseUserId());
+            profile.setUser(savedUser);
+            profile.setFullName(request.getFullName());
+            profile.setDateOfBirth(request.getDateOfBirth());
+            profile.setGender(request.getGender());
+            profile.setClassGrade(request.getClassGrade());
+            
+            studentProfileRepository.save(profile);
+        }
+        
+        return new ApiResponse(true, "Profile created successfully");
+    }
+    
+    // New method for Supabase Auth
+    public ProfileResponse getProfile(String supabaseUserId) {
+        User user = userRepository.findBySupabaseUserId(supabaseUserId)
+            .orElseThrow(() -> new AuthenticationException("User profile not found"));
+        
+        ProfileResponse response = new ProfileResponse();
+        response.setSupabaseUserId(user.getSupabaseUserId());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole().name());
+        response.setFullName(user.getFullName());
+        response.setApprovalStatus(user.getStatus() != null ? user.getStatus().name() : "APPROVED");
+        
+        // Add class grade for students
+        if (user.getRole() == User.Role.STUDENT && user.getStudentProfile() != null) {
+            response.setClassGrade(user.getStudentProfile().getClassGrade());
+        }
+        
+        return response;
+    }
+    
+    // Legacy methods - kept for backward compatibility during migration
     @Transactional
     public StudentRegistrationResponse registerStudent(StudentRegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {

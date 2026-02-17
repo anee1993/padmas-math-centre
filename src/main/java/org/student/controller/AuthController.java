@@ -3,6 +3,7 @@ package org.student.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.student.dto.*;
 import org.student.service.AuthService;
@@ -20,6 +21,21 @@ public class AuthController {
         this.passwordResetService = passwordResetService;
     }
     
+    // New Supabase Auth endpoints
+    @PostMapping("/create-profile")
+    public ResponseEntity<ApiResponse> createProfile(@Valid @RequestBody CreateProfileRequest request) {
+        ApiResponse response = authService.createProfile(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    @GetMapping("/profile")
+    public ResponseEntity<ProfileResponse> getProfile(Authentication authentication) {
+        String supabaseUserId = (String) authentication.getPrincipal();
+        ProfileResponse response = authService.getProfile(supabaseUserId);
+        return ResponseEntity.ok(response);
+    }
+    
+    // Legacy endpoints - kept for backward compatibility
     @PostMapping("/register")
     public ResponseEntity<StudentRegistrationResponse> registerStudent(
             @Valid @RequestBody StudentRegistrationRequest request) {

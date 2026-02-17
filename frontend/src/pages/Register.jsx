@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 const mathQuotes = [
   { quote: "Mathematics is the music of reason", author: "James Joseph Sylvester" },
@@ -15,6 +15,7 @@ const mathQuotes = [
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [randomQuote] = useState(() => mathQuotes[Math.floor(Math.random() * mathQuotes.length)]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,16 +41,28 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/auth/register', formData);
-      setMessage(response.data.message);
-      setTimeout(() => navigate('/login'), 2000);
-    } catch (error) {
-      if (error.response?.data) {
-        if (typeof error.response.data === 'object') {
-          setErrors(error.response.data);
-        } else {
-          setMessage(error.response.data.message || 'Registration failed');
+      // Register with Supabase
+      await register(
+        formData.email,
+        formData.password,
+        'STUDENT',
+        {
+          full_name: formData.fullName,
+          date_of_birth: formData.dateOfBirth,
+          gender: formData.gender,
+          class_grade: parseInt(formData.classGrade),
+          approval_status: 'PENDING'
         }
+      );
+      
+      setMessage('Registration successful! Your account is pending teacher approval. You can now login.');
+      setTimeout(() => navigate('/login'), 3000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      if (error.message.includes('already registered')) {
+        setErrors({ email: 'This email is already registered' });
+      } else {
+        setMessage(error.message || 'Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);

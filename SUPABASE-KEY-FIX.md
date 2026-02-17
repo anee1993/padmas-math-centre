@@ -24,16 +24,6 @@ You're using the **anon** key instead of the **service_role** key in your backen
 
 ### Step 2: Update Local Environment
 
-Edit your `.env` file:
-
-```env
-# Replace this line:
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dGF3ZGNiZmt3YmtsaGhvdnJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNjc0ODMsImV4cCI6MjA4NjY0MzQ4M30.lE3dgo1YeesgJsGiS7AHKsuiNZyNfdjopW2cEQAv-h0
-
-# With your service_role key:
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dGF3ZGNiZmt3YmtsaGhvdnJlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTA2NzQ4MywiZXhwIjoyMDg2NjQzNDgzfQ.YOUR_SERVICE_ROLE_KEY_HERE
-```
-
 ### Step 3: Update Railway (Production)
 
 1. Go to Railway dashboard: https://railway.app

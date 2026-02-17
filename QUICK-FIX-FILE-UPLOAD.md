@@ -43,7 +43,7 @@ Replace `YOUR_SERVICE_ROLE_KEY_HERE` with the service_role key you copied.
 ```yaml
 supabase:
   url: https://bvtawdcbfkwbklhhovre.supabase.co
-  key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2dGF3ZGNiZmt3YmtsaGhvdnJlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwOTU1NTU1NSwiZXhwIjoyMDI1MTMxNTU1fQ.your-actual-signature-here
+  key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IllPVVJfUFJPSkVDVF9SRUYiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjIwMDAwMDAwMDB9.YOUR_SIGNATURE_HERE
 ```
 
 ---

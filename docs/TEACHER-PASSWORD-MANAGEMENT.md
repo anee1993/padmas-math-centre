@@ -15,7 +15,7 @@ When the application starts for the first time:
    ```
    ============================================================
    NEW TEACHER ACCOUNT CREATED
-   Email: padmakrishnan1992@gmail.com
+   Email: teacher@example.com
    Default Password: Teacher@123
    IMPORTANT: Please change this password after first login!
    ============================================================
@@ -29,7 +29,7 @@ When the application starts and teacher account already exists:
 2. **Only updates the teacher's name** if it changed in environment variables
 3. **Displays message**:
    ```
-   Teacher account exists: padmakrishnan1992@gmail.com
+   Teacher account exists: teacher@example.com
    Use forgot password feature to reset password if needed
    ```
 
@@ -42,7 +42,7 @@ The teacher can reset their password using the same forgot password feature as s
 - Or navigate to: `https://tutorpadma.vercel.app/forgot-password`
 
 ### Step 2: Enter Email
-- Enter teacher email: `padmakrishnan1992@gmail.com`
+- Enter teacher email: `teacher@example.com`
 - Click "Send OTP"
 
 ### Step 3: Check Email
@@ -100,9 +100,9 @@ The teacher can reset their password using the same forgot password feature as s
 
 ```env
 # Teacher Account Configuration
-TEACHER_EMAIL=padmakrishnan1992@gmail.com
+TEACHER_EMAIL=teacher@example.com
 TEACHER_DEFAULT_PASSWORD=Teacher@123  # Only used for NEW accounts
-TEACHER_NAME=A Padma
+TEACHER_NAME=Teacher Name
 ```
 
 ### Railway Deployment
@@ -150,7 +150,7 @@ If absolutely necessary, you can manually reset via database:
    ```sql
    UPDATE users 
    SET password_hash = '$2a$10$...' -- paste BCrypt hash here
-   WHERE email = 'padmakrishnan1992@gmail.com';
+   WHERE email = 'teacher@example.com';
    ```
 
 **Note**: This should only be done as a last resort. The forgot password feature is the recommended approach.

@@ -45,7 +45,7 @@ load-env-and-run.bat
 
 ## Step 4: Test It!
 
-1. Login as teacher (padmakrishnan1992@gmail.com)
+1. Login as teacher (use your configured teacher email)
 2. Go to "Assignments" tab
 3. Click "🤖 Generate Assignment"
 4. Fill in the form:

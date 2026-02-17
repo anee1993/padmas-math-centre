@@ -47,7 +47,7 @@ spring:
 ```bash
 export DB_URL=jdbc:postgresql://db.bvtawdcbfkwbklhhovre.supabase.co:5432/postgres
 export DB_USERNAME=postgres
-export DB_PASSWORD=Assassin#199320
+export DB_PASSWORD=your-database-password-here
 ```
 
 ### Option 2: Spring Profiles
@@ -56,7 +56,7 @@ Create `application-prod.yml` (already in .gitignore):
 ```yaml
 spring:
   datasource:
-    password: Assassin#199320
+    password: your-database-password-here
   jpa:
     show-sql: false
 ```

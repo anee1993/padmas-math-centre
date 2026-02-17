@@ -165,7 +165,7 @@ spring:
   datasource:
     url: jdbc:postgresql://db.bvtawdcbfkwbklhhovre.supabase.co:5432/postgres
     username: postgres
-    password: Assassin#199320
+    password: ${DATABASE_PASSWORD}
   
   servlet:
     multipart:

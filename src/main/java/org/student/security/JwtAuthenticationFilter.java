@@ -40,9 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         try {
             final String jwt = authHeader.substring(7);
+            System.out.println("Validating JWT token...");
             
             if (supabaseJwtValidator.validateToken(jwt)) {
                 final String supabaseUserId = supabaseJwtValidator.extractUserId(jwt);
+                System.out.println("Token valid, user ID: " + supabaseUserId);
                 
                 if (supabaseUserId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     // Load user from database
@@ -50,6 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     if (user != null) {
                         String role = user.getRole().name();
+                        System.out.println("Found user in DB: " + user.getEmail() + ", role: " + role);
                         
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 supabaseUserId,
@@ -58,11 +61,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                    } else {
+                        System.err.println("User not found in database for Supabase ID: " + supabaseUserId);
                     }
                 }
+            } else {
+                System.err.println("Token validation failed");
             }
         } catch (Exception e) {
-            logger.error("JWT authentication failed", e);
+            System.err.println("JWT authentication failed: " + e.getMessage());
+            e.printStackTrace();
         }
         
         filterChain.doFilter(request, response);

@@ -15,7 +15,14 @@ public class SupabaseJwtValidator {
     private String supabaseUrl;
     
     public String extractUserId(String token) {
-        return extractAllClaims(token).getSubject();
+        try {
+            String userId = extractAllClaims(token).getSubject();
+            System.out.println("Extracted user ID from token: " + userId);
+            return userId;
+        } catch (Exception e) {
+            System.err.println("Error extracting user ID: " + e.getMessage());
+            throw e;
+        }
     }
     
     public String extractEmail(String token) {

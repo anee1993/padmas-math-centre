@@ -76,8 +76,15 @@ public class AuthService {
     
     // New method for Supabase Auth
     public ProfileResponse getProfile(String supabaseUserId) {
+        System.out.println("Looking up user with Supabase ID: " + supabaseUserId);
+        
         User user = userRepository.findBySupabaseUserId(supabaseUserId)
-            .orElseThrow(() -> new AuthenticationException("User profile not found"));
+            .orElseThrow(() -> {
+                System.out.println("User not found for Supabase ID: " + supabaseUserId);
+                return new AuthenticationException("User profile not found for ID: " + supabaseUserId);
+            });
+        
+        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole());
         
         ProfileResponse response = new ProfileResponse();
         response.setSupabaseUserId(user.getSupabaseUserId());

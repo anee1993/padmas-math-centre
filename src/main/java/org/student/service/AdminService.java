@@ -29,7 +29,7 @@ public class AdminService {
     }
     
     public List<PendingStudentDTO> getPendingRegistrations() {
-        List<User> pendingUsers = userRepository.findByRoleAndStatus(
+        List<User> pendingUsers = userRepository.findByRoleAndStatusWithProfile(
             User.Role.STUDENT, 
             User.RegistrationStatus.PENDING
         );
@@ -48,7 +48,7 @@ public class AdminService {
     }
     
     public List<EnrolledStudentDTO> getEnrolledStudents() {
-        List<User> enrolledUsers = userRepository.findByRoleAndStatus(
+        List<User> enrolledUsers = userRepository.findByRoleAndStatusWithProfile(
             User.Role.STUDENT,
             User.RegistrationStatus.APPROVED
         );
@@ -68,7 +68,7 @@ public class AdminService {
     }
     
     public List<EnrolledStudentDTO> getEnrolledStudentsByClass(Integer classGrade) {
-        List<User> enrolledUsers = userRepository.findByRoleAndStatus(
+        List<User> enrolledUsers = userRepository.findByRoleAndStatusWithProfile(
             User.Role.STUDENT,
             User.RegistrationStatus.APPROVED
         );

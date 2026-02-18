@@ -54,13 +54,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         String role = user.getRole().name();
                         System.out.println("Found user in DB: " + user.getEmail() + ", role: " + role);
                         
+                        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+                        System.out.println("Setting authority: " + authority.getAuthority());
+                        
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 supabaseUserId,
                                 null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                                Collections.singletonList(authority)
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                        
+                        System.out.println("Authentication set in SecurityContext with authorities: " + authToken.getAuthorities());
                     } else {
                         System.err.println("User not found in database for Supabase ID: " + supabaseUserId);
                     }

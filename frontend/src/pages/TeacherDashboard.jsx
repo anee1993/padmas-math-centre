@@ -48,15 +48,24 @@ const TeacherDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [pendingRes, enrolledRes, classroomsRes] = await Promise.all([
+      // Fetch pending and enrolled students (critical)
+      const [pendingRes, enrolledRes] = await Promise.all([
         axios.get('/admin/pending-registrations'),
-        axios.get('/admin/enrolled-students'),
-        axios.get('/virtual-classroom/all')
+        axios.get('/admin/enrolled-students')
       ]);
       setPendingStudents(pendingRes.data);
       setEnrolledStudents(enrolledRes.data);
-      setClassrooms(classroomsRes.data);
+      
+      // Fetch classrooms separately (non-critical, can fail gracefully)
+      try {
+        const classroomsRes = await axios.get('/virtual-classroom/all');
+        setClassrooms(classroomsRes.data);
+      } catch (classroomError) {
+        console.warn('Failed to fetch virtual classrooms:', classroomError);
+        setClassrooms([]); // Set empty array if virtual classroom fails
+      }
     } catch (error) {
+      console.error('Failed to fetch data:', error);
       setMessage('Failed to fetch data');
     } finally {
       setLoading(false);

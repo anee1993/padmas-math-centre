@@ -49,6 +49,7 @@ JWT_EXPIRATION=86400000
 # Supabase Configuration
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-supabase-service-role-key
+SUPABASE_JWT_SECRET={"x":"YOUR_X","y":"YOUR_Y","alg":"ES256","crv":"P-256","ext":true,"kid":"YOUR_KID","kty":"EC","key_ops":["verify"]}
 
 # Email Configuration
 MAIL_ENABLED=true
@@ -65,6 +66,9 @@ SHOW_SQL=false
 ```
 
 **Copy values from your local `.env` file!**
+
+**Note:** For `SUPABASE_JWT_SECRET`, get the JWK from:
+Supabase Dashboard → Settings → API → JWT Settings → JWT Secret (copy the full JSON object)
 
 ### Step 4: Deploy
 

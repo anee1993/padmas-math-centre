@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/create-profile").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("OPTIONS", "/**").permitAll()  // Allow CORS preflight
                 .requestMatchers("/api/admin/**").hasRole("TEACHER")
                 .anyRequest().authenticated()
             )

@@ -24,6 +24,16 @@ public class AuthController {
     // New Supabase Auth endpoints
     @PostMapping("/create-profile")
     public ResponseEntity<ApiResponse> createProfile(@Valid @RequestBody CreateProfileRequest request) {
+        System.out.println("=== CREATE PROFILE REQUEST ===");
+        System.out.println("Supabase User ID: " + request.getSupabaseUserId());
+        System.out.println("Email: " + request.getEmail());
+        System.out.println("Role: " + request.getRole());
+        System.out.println("Full Name: " + request.getFullName());
+        System.out.println("Date of Birth: " + request.getDateOfBirth());
+        System.out.println("Gender: " + request.getGender());
+        System.out.println("Class Grade: " + request.getClassGrade());
+        System.out.println("==============================");
+        
         ApiResponse response = authService.createProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

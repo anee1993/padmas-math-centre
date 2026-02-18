@@ -122,13 +122,16 @@ export const AuthProvider = ({ children }) => {
 
     if (error) throw error;
 
-    // Create profile in backend
+    // Create profile in backend with camelCase field names
     if (data.user) {
       await axios.post('/auth/create-profile', {
         supabaseUserId: data.user.id,
         email,
         role,
-        ...additionalData
+        fullName: additionalData.full_name,
+        dateOfBirth: additionalData.date_of_birth,
+        gender: additionalData.gender,
+        classGrade: additionalData.class_grade
       });
     }
 

@@ -50,8 +50,7 @@ const Register = () => {
           full_name: formData.fullName,
           date_of_birth: formData.dateOfBirth,
           gender: formData.gender,
-          class_grade: parseInt(formData.classGrade),
-          approval_status: 'PENDING'
+          class_grade: parseInt(formData.classGrade)
         }
       );
       

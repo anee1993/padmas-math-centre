@@ -136,7 +136,18 @@ export const AuthProvider = ({ children }) => {
       
       console.log('Sending profile data to backend:', profileData);
       
-      await axios.post('/auth/create-profile', profileData);
+      try {
+        await axios.post('/auth/create-profile', profileData);
+      } catch (backendError) {
+        console.error('Backend profile creation error:', backendError.response?.data);
+        // Delete the Supabase user if backend profile creation fails
+        await supabase.auth.admin.deleteUser(data.user.id);
+        throw new Error(
+          backendError.response?.data?.message || 
+          JSON.stringify(backendError.response?.data) ||
+          'Failed to create profile'
+        );
+      }
     }
 
     return data;

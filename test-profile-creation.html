@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Profile Creation</title>
+</head>
+<body>
+    <h1>Test Backend Profile Creation</h1>
+    <button onclick="testProfileCreation()">Test Create Profile</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testProfileCreation() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = 'Testing...';
+
+            const testData = {
+                supabaseUserId: 'test-user-id-' + Date.now(),
+                email: 'test' + Date.now() + '@example.com',
+                role: 'STUDENT',
+                fullName: 'Test Student',
+                dateOfBirth: '2010-01-15',
+                gender: 'MALE',
+                classGrade: 8
+            };
+
+            console.log('Sending:', testData);
+
+            try {
+                const response = await fetch('https://padma-math-tutions.up.railway.app/api/auth/create-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                resultEl.textContent = `Status: ${response.status}\n\n` +
+                    `Response:\n${JSON.stringify(data, null, 2)}`;
+                
+                console.log('Response:', response.status, data);
+            } catch (error) {
+                resultEl.textContent = `Error: ${error.message}`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

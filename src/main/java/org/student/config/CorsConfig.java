@@ -15,15 +15,14 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000", 
-            "http://localhost:5173",
-            "https://padmas-math-centre-cqnzoajfh-anirudhs-projects-926bcc1e.vercel.app",
-            "https://padmas-math-centre.vercel.app",
-            "https://tutorpadma.vercel.app"
+        config.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "https://*.vercel.app",
+            "file://*"  // For local testing
         ));
         config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setExposedHeaders(Arrays.asList("Authorization"));
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

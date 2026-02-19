@@ -66,7 +66,6 @@ public class AssignmentController {
     }
     
     @GetMapping
-    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<AssignmentDTO>> getAllAssignments() {
         try {
             List<AssignmentDTO> assignments = assignmentService.getAllAssignments();

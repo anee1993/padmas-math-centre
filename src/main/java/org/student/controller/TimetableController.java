@@ -51,7 +51,6 @@ public class TimetableController {
     }
     
     @GetMapping("/all")
-    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<TimetableDTO>> getAllTimetables() {
         try {
             List<TimetableDTO> timetables = timetableService.getAllTimetables();

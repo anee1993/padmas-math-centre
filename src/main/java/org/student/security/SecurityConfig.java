@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+// @EnableMethodSecurity(prePostEnabled = true)  // Disabled - using HTTP-level security instead
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

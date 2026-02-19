@@ -28,7 +28,6 @@ public class VirtualClassroomController {
     }
     
     @GetMapping("/all")
-    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<VirtualClassroomDTO>> getAllClassrooms() {
         try {
             List<VirtualClassroomDTO> classrooms = virtualClassroomService.getAllClassrooms();

@@ -63,6 +63,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 null,
                                 Collections.singletonList(authority)
                         );
+                        
+                        // Mark as authenticated explicitly
+                        authToken.setAuthenticated(true);
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         

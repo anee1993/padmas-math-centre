@@ -33,6 +33,11 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("OPTIONS", "/**").permitAll()  // Allow CORS preflight
                 .requestMatchers("/api/admin/**").hasRole("TEACHER")
+                .requestMatchers("/api/virtual-classroom/**").hasRole("TEACHER")
+                .requestMatchers("/api/timetable/**").hasAnyRole("TEACHER", "STUDENT")
+                .requestMatchers("/api/assignments/**").hasAnyRole("TEACHER", "STUDENT")
+                .requestMatchers("/api/learning-materials/**").hasAnyRole("TEACHER", "STUDENT")
+                .requestMatchers("/api/queries/**").hasAnyRole("TEACHER", "STUDENT")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

@@ -101,6 +101,33 @@ public class AuthService {
         return response;
     }
     
+    // New method to get profile by email (used after authentication)
+    public ProfileResponse getProfileByEmail(String email) {
+        System.out.println("Looking up user with email: " + email);
+        
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> {
+                System.out.println("User not found for email: " + email);
+                return new AuthenticationException("User profile not found for email: " + email);
+            });
+        
+        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole());
+        
+        ProfileResponse response = new ProfileResponse();
+        response.setSupabaseUserId(user.getSupabaseUserId());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole().name());
+        response.setFullName(user.getFullName());
+        response.setApprovalStatus(user.getStatus() != null ? user.getStatus().name() : "APPROVED");
+        
+        // Add class grade for students
+        if (user.getRole() == User.Role.STUDENT && user.getStudentProfile() != null) {
+            response.setClassGrade(user.getStudentProfile().getClassGrade());
+        }
+        
+        return response;
+    }
+    
     // Legacy methods - kept for backward compatibility during migration
     @Transactional
     public StudentRegistrationResponse registerStudent(StudentRegistrationRequest request) {

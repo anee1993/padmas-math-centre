@@ -40,8 +40,9 @@ public class AuthController {
     
     @GetMapping("/profile")
     public ResponseEntity<ProfileResponse> getProfile(Authentication authentication) {
-        String supabaseUserId = (String) authentication.getPrincipal();
-        ProfileResponse response = authService.getProfile(supabaseUserId);
+        // authentication.getPrincipal() now returns email (not supabaseUserId)
+        String email = (String) authentication.getPrincipal();
+        ProfileResponse response = authService.getProfileByEmail(email);
         return ResponseEntity.ok(response);
     }
     

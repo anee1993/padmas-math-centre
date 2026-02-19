@@ -66,7 +66,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         
-                        System.out.println("Authentication set in SecurityContext with principal: " + user.getEmail() + ", authorities: " + authToken.getAuthorities());
+                        System.out.println("=== AUTHENTICATION DEBUG ===");
+                        System.out.println("Principal: " + user.getEmail());
+                        System.out.println("Authorities: " + authToken.getAuthorities());
+                        System.out.println("Authority string: " + authority.getAuthority());
+                        System.out.println("Is authenticated: " + authToken.isAuthenticated());
+                        System.out.println("===========================");
                     } else {
                         System.err.println("User not found in database for Supabase ID: " + supabaseUserId);
                     }

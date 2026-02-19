@@ -30,8 +30,16 @@ public class VirtualClassroomController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<VirtualClassroomDTO>> getAllClassrooms() {
-        List<VirtualClassroomDTO> classrooms = virtualClassroomService.getAllClassrooms();
-        return ResponseEntity.ok(classrooms);
+        try {
+            List<VirtualClassroomDTO> classrooms = virtualClassroomService.getAllClassrooms();
+            return ResponseEntity.ok(classrooms);
+        } catch (Exception e) {
+            // Log the error and return empty list instead of 500
+            System.err.println("Error fetching virtual classrooms: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list to prevent dashboard from breaking
+            return ResponseEntity.ok(List.of());
+        }
     }
     
     @PutMapping("/toggle/{classGrade}")

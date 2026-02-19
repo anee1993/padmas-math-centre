@@ -192,7 +192,8 @@ public class AssignmentService {
     }
     
     private SubmissionDTO mapSubmissionToDTO(AssignmentSubmission submission) {
-        User student = userRepository.findById(submission.getStudentId())
+        // Use findByIdWithProfile to avoid lazy loading issues
+        User student = userRepository.findByIdWithProfile(submission.getStudentId())
             .orElse(null);
         
         return new SubmissionDTO(

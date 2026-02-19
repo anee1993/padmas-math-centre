@@ -53,7 +53,15 @@ public class TimetableController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<TimetableDTO>> getAllTimetables() {
-        List<TimetableDTO> timetables = timetableService.getAllTimetables();
-        return ResponseEntity.ok(timetables);
+        try {
+            List<TimetableDTO> timetables = timetableService.getAllTimetables();
+            return ResponseEntity.ok(timetables);
+        } catch (Exception e) {
+            // Log the error and return empty list instead of 500
+            System.err.println("Error fetching timetables: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list to prevent dashboard from breaking
+            return ResponseEntity.ok(List.of());
+        }
     }
 }

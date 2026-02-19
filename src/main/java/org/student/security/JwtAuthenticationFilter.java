@@ -57,15 +57,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
                         System.out.println("Setting authority: " + authority.getAuthority());
                         
+                        // Use email as principal so authentication.getName() returns email
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                supabaseUserId,
+                                user.getEmail(),  // Use email as principal, not supabaseUserId
                                 null,
                                 Collections.singletonList(authority)
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         
-                        System.out.println("Authentication set in SecurityContext with authorities: " + authToken.getAuthorities());
+                        System.out.println("Authentication set in SecurityContext with principal: " + user.getEmail() + ", authorities: " + authToken.getAuthorities());
                     } else {
                         System.err.println("User not found in database for Supabase ID: " + supabaseUserId);
                     }

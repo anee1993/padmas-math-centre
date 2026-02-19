@@ -68,8 +68,16 @@ public class AssignmentController {
     @GetMapping
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<AssignmentDTO>> getAllAssignments() {
-        List<AssignmentDTO> assignments = assignmentService.getAllAssignments();
-        return ResponseEntity.ok(assignments);
+        try {
+            List<AssignmentDTO> assignments = assignmentService.getAllAssignments();
+            return ResponseEntity.ok(assignments);
+        } catch (Exception e) {
+            // Log the error and return empty list instead of 500
+            System.err.println("Error fetching assignments: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list to prevent dashboard from breaking
+            return ResponseEntity.ok(List.of());
+        }
     }
     
     @GetMapping("/{id}")
@@ -186,6 +194,7 @@ public class AssignmentController {
             @Valid @RequestBody GenerateAssignmentRequest request) {
         
         try {
+            System.out.println("Generating assignment for topic: " + request.getTopic() + ", grade: " + request.getClassGrade());
             String generatedAssignment = aiAssignmentGeneratorService.generateAssignment(request);
             
             Map<String, String> response = new HashMap<>();
@@ -196,8 +205,10 @@ public class AssignmentController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
+            System.err.println("Error generating assignment: " + e.getMessage());
+            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
+            error.put("error", "Failed to generate assignment: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

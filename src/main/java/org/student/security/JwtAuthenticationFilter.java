@@ -58,14 +58,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         System.out.println("Setting authority: " + authority.getAuthority());
                         
                         // Use email as principal so authentication.getName() returns email
+                        // The 3-parameter constructor automatically sets authenticated=true
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 user.getEmail(),  // Use email as principal, not supabaseUserId
                                 null,
                                 Collections.singletonList(authority)
                         );
                         
-                        // Mark as authenticated explicitly
-                        authToken.setAuthenticated(true);
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         

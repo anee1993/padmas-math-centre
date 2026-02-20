@@ -41,7 +41,9 @@ const GenerateAssignment = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name.includes('Questions') || name === 'classGrade' ? parseInt(value) : value
+      [name]: name.includes('Questions') || name === 'classGrade' 
+        ? (value === '' ? 0 : parseInt(value)) 
+        : value
     }));
   };
 

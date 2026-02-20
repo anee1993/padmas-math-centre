@@ -47,8 +47,18 @@ public class AssignmentController {
         // Get authentication from SecurityContextHolder instead of method parameter
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
+        System.out.println("=== CREATE ASSIGNMENT DEBUG ===");
+        System.out.println("Authentication object: " + authentication);
+        if (authentication != null) {
+            System.out.println("Principal: " + authentication.getPrincipal());
+            System.out.println("Is authenticated: " + authentication.isAuthenticated());
+            System.out.println("Authorities: " + authentication.getAuthorities());
+        }
+        System.out.println("===============================");
+        
         if (authentication == null || !authentication.isAuthenticated()) {
             System.err.println("ERROR: User not authenticated in createAssignment!");
+            System.err.println("THROWING EXCEPTION");
             throw new RuntimeException("User not authenticated");
         }
         

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.student.dto.*;
@@ -41,18 +42,21 @@ public class AssignmentController {
     
     @PostMapping
     public ResponseEntity<AssignmentDTO> createAssignment(
-            @Valid @RequestBody CreateAssignmentRequest request,
-            Authentication authentication) {
+            @Valid @RequestBody CreateAssignmentRequest request) {
         
-        if (authentication == null) {
-            System.err.println("ERROR: Authentication is null in createAssignment!");
-            throw new RuntimeException("Authentication is null - user not authenticated");
+        // Get authentication from SecurityContextHolder instead of method parameter
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            System.err.println("ERROR: User not authenticated in createAssignment!");
+            throw new RuntimeException("User not authenticated");
         }
         
-        System.out.println("Creating assignment - authenticated user: " + authentication.getName());
+        String email = authentication.getName();
+        System.out.println("Creating assignment - authenticated user: " + email);
         
-        User teacher = userRepository.findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+        User teacher = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("Teacher not found: " + email));
         
         AssignmentDTO assignment = assignmentService.createAssignment(request, teacher.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(assignment);

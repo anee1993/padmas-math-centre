@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 final String supabaseUserId = supabaseJwtValidator.extractUserId(jwt);
                 System.out.println("Token valid, user ID: " + supabaseUserId);
                 
-                if (supabaseUserId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (supabaseUserId != null) {
                     // Load user from database
                     User user = userRepository.findBySupabaseUserId(supabaseUserId).orElse(null);
                     
@@ -66,6 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                         
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        // Always set authentication if we have a valid JWT, even if one already exists
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         
                         System.out.println("=== AUTHENTICATION DEBUG ===");

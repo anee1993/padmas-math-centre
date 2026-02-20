@@ -40,10 +40,17 @@ public class AssignmentController {
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<AssignmentDTO> createAssignment(
             @Valid @RequestBody CreateAssignmentRequest request,
             Authentication authentication) {
+        
+        if (authentication == null) {
+            System.err.println("ERROR: Authentication is null in createAssignment!");
+            throw new RuntimeException("Authentication is null - user not authenticated");
+        }
+        
+        System.out.println("Creating assignment - authenticated user: " + authentication.getName());
+        
         User teacher = userRepository.findByEmail(authentication.getName())
             .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
         

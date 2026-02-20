@@ -40,6 +40,9 @@ export const AuthProvider = ({ children }) => {
       const supabaseUserId = session.user.id;
       const role = session.user.user_metadata?.role || 'STUDENT';
       
+      // Store token in localStorage for axios interceptor
+      localStorage.setItem('token', token);
+      
       // Get user profile from backend (includes approval status)
       const response = await axios.get('/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
@@ -72,10 +75,15 @@ export const AuthProvider = ({ children }) => {
       console.error('Error loading profile:', error);
       // If profile doesn't exist yet, use basic info from Supabase
       const role = session.user.user_metadata?.role || 'STUDENT';
+      const token = session.access_token;
+      
+      // Store token in localStorage even if profile load fails
+      localStorage.setItem('token', token);
+      
       const userData = {
         email: session.user.email,
         role,
-        token: session.access_token,
+        token,
         supabaseUserId: session.user.id,
         approvalStatus: role === 'TEACHER' ? 'APPROVED' : 'PENDING'
       };
@@ -155,6 +163,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('token'); // Clear token from localStorage
     setUser(null);
     navigate('/login');
   };

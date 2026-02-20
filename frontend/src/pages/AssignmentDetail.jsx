@@ -242,22 +242,6 @@ const AssignmentDetail = () => {
       </nav>
 
       <div className="container mx-auto p-6 max-w-4xl">
-        {/* Debug Test Button - Remove after testing */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
-          <p className="text-sm font-semibold text-yellow-800 mb-2">🔧 Debug Mode Active</p>
-          <button
-            onClick={() => {
-              const testDate = '2025-02-18T17:45:00.000Z';
-              const formatted = formatToIST(testDate);
-              alert(`Test Date: ${testDate}\nFormatted: ${formatted}\n\nCheck console for more details.`);
-              console.log('🧪 Manual Test:', testDate, '→', formatted);
-            }}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
-          >
-            Test IST Formatting
-          </button>
-        </div>
-
         {message && (
           <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             {message}

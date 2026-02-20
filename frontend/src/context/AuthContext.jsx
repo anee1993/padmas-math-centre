@@ -50,6 +50,8 @@ export const AuthProvider = ({ children }) => {
       
       const profile = response.data;
       
+      console.log('Profile loaded from backend:', profile);
+      
       const userData = {
         email,
         role: profile.role || role, // Use role from backend profile
@@ -63,7 +65,9 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       
       // Navigate based on role from backend
+      // Teachers always go to dashboard regardless of approval status
       if (userData.role === 'TEACHER') {
+        console.log('Teacher role detected - navigating to dashboard');
         navigate('/teacher/dashboard');
       } else if (profile.approvalStatus === 'APPROVED') {
         navigate('/student/dashboard');

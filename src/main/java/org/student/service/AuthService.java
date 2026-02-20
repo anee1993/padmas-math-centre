@@ -84,14 +84,25 @@ public class AuthService {
                 return new AuthenticationException("User profile not found for ID: " + supabaseUserId);
             });
         
-        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole());
+        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole() + ", status: " + user.getStatus());
         
         ProfileResponse response = new ProfileResponse();
         response.setSupabaseUserId(user.getSupabaseUserId());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().name());
         response.setFullName(user.getFullName());
-        response.setApprovalStatus(user.getStatus() != null ? user.getStatus().name() : "APPROVED");
+        
+        // Teachers are always approved, students depend on their status
+        String approvalStatus;
+        if (user.getRole() == User.Role.TEACHER) {
+            approvalStatus = "APPROVED";
+            System.out.println("Teacher role detected - forcing APPROVED status");
+        } else {
+            approvalStatus = user.getStatus() != null ? user.getStatus().name() : "APPROVED";
+        }
+        response.setApprovalStatus(approvalStatus);
+        
+        System.out.println("Returning approval status: " + approvalStatus);
         
         // Add class grade for students
         if (user.getRole() == User.Role.STUDENT && user.getStudentProfile() != null) {
@@ -111,14 +122,25 @@ public class AuthService {
                 return new AuthenticationException("User profile not found for email: " + email);
             });
         
-        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole());
+        System.out.println("Found user: " + user.getEmail() + ", role: " + user.getRole() + ", status: " + user.getStatus());
         
         ProfileResponse response = new ProfileResponse();
         response.setSupabaseUserId(user.getSupabaseUserId());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().name());
         response.setFullName(user.getFullName());
-        response.setApprovalStatus(user.getStatus() != null ? user.getStatus().name() : "APPROVED");
+        
+        // Teachers are always approved, students depend on their status
+        String approvalStatus;
+        if (user.getRole() == User.Role.TEACHER) {
+            approvalStatus = "APPROVED";
+            System.out.println("Teacher role detected - forcing APPROVED status");
+        } else {
+            approvalStatus = user.getStatus() != null ? user.getStatus().name() : "APPROVED";
+        }
+        response.setApprovalStatus(approvalStatus);
+        
+        System.out.println("Returning approval status: " + approvalStatus);
         
         // Add class grade for students
         if (user.getRole() == User.Role.STUDENT && user.getStudentProfile() != null) {

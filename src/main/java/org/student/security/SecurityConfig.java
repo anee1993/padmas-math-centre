@@ -30,6 +30,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/create-profile").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/supabase-proxy/**").permitAll()  // Allow proxy endpoints
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("OPTIONS", "/**").permitAll()  // Allow CORS preflight
                 .requestMatchers("/api/admin/**").hasRole("TEACHER")

@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseProxy'; // Using proxy instead of direct Supabase
 import axios from '../api/axios';
 
 const AuthContext = createContext(null);

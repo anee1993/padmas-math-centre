@@ -2,6 +2,12 @@
 
 A Spring Boot REST API service for managing student registrations and teacher administration for a mathematics tuition center.
 
+<img width="1916" height="835" alt="Screenshot 2026-03-21 at 9 05 24 PM" src="https://github.com/user-attachments/assets/327ff14e-d007-4fde-acc6-f679f9138a6e" />
+
+<img width="1911" height="898" alt="Screenshot 2026-03-21 at 9 04 59 PM" src="https://github.com/user-attachments/assets/859cd597-12b8-4a40-b050-40e99bbd0ea0" />
+
+<img width="1910" height="907" alt="Screenshot 2026-03-21 at 9 05 10 PM" src="https://github.com/user-attachments/assets/5d719ad5-0456-4f8f-9cd3-3d3e50daed25" />
+
 ## Features
 
 - Student self-registration with validation

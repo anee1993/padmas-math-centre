@@ -39,4 +39,7 @@ public class GenerateAssignmentRequest {
     
     @NotBlank(message = "Complexity is required")
     private String complexity; // EASY, MEDIUM, HARD
+
+    // Optional: extracted text from uploaded PDF, injected as context
+    private String pdfContext;
 }

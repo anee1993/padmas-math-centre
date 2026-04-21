@@ -22,6 +22,7 @@ const GenerateAssignment = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
   const [postFormData, setPostFormData] = useState({
     title: '',
     dueDate: '',
@@ -49,19 +50,26 @@ const GenerateAssignment = () => {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
-    
-    // Validate at least one question type is selected
-    const totalQuestions = formData.oneMarkQuestions + formData.twoMarkQuestions + 
+
+    const totalQuestions = formData.oneMarkQuestions + formData.twoMarkQuestions +
                           formData.threeMarkQuestions + formData.fiveMarkQuestions;
-    
+
     if (totalQuestions === 0) {
       alert('Please select at least one question type');
       return;
     }
-    
+
     setLoading(true);
     try {
-      const response = await axios.post('/assignments/generate', formData);
+      const multipart = new FormData();
+      multipart.append('data', new Blob([JSON.stringify(formData)], { type: 'application/json' }));
+      if (pdfFile) {
+        multipart.append('pdf', pdfFile);
+      }
+
+      const response = await axios.post('/assignments/generate', multipart, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setGeneratedContent(response.data.content);
     } catch (error) {
       alert(error.response?.data?.error || 'Failed to generate assignment');
@@ -284,6 +292,53 @@ const GenerateAssignment = () => {
                 </div>
               </div>
 
+              {/* PDF Context Upload */}
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  📄 Upload Textbook / Chapter PDF
+                  <span className="ml-2 text-xs font-normal text-gray-400">(Optional)</span>
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Upload a PDF (e.g. textbook chapter) to ground the AI and reduce hallucinations.
+                </p>
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+                    pdfFile ? 'border-purple-400 bg-purple-50' : 'border-gray-300 hover:border-purple-400'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setPdfFile(e.target.files[0] || null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  {pdfFile ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-purple-700 text-sm">
+                        <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="truncate max-w-[180px]">{pdfFile.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setPdfFile(null); }}
+                        className="text-red-500 hover:text-red-700 text-xs ml-2 z-10 relative"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-sm">
+                      <svg className="w-8 h-8 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      Click or drag a PDF here
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Generate Button */}
               <button
                 type="submit"
@@ -309,10 +364,9 @@ const GenerateAssignment = () => {
               </button>
             </form>
 
-            {/* Info Box */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> The AI will generate questions appropriate for the selected class level and complexity. You can edit the generated content before using it.
+                <strong>💡 Tip:</strong> Upload a textbook chapter PDF to help the AI generate questions based on actual content, reducing hallucinations. You can also edit the generated content before posting.
               </p>
             </div>
           </div>

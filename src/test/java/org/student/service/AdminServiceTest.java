@@ -88,7 +88,7 @@ class AdminServiceTest {
     void getPendingRegistrations_ReturnsListOfPendingStudents() {
         // Arrange
         List<User> pendingUsers = Arrays.asList(pendingStudent);
-        when(userRepository.findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.PENDING))
+        when(userRepository.findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.PENDING))
             .thenReturn(pendingUsers);
 
         // Act
@@ -103,13 +103,13 @@ class AdminServiceTest {
         assertEquals("Pending Student", dto.getFullName());
         assertEquals(8, dto.getClassGrade());
 
-        verify(userRepository).findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.PENDING);
+        verify(userRepository).findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.PENDING);
     }
 
     @Test
     void getPendingRegistrations_ReturnsEmptyList_WhenNoPendingStudents() {
         // Arrange
-        when(userRepository.findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.PENDING))
+        when(userRepository.findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.PENDING))
             .thenReturn(Arrays.asList());
 
         // Act
@@ -124,7 +124,7 @@ class AdminServiceTest {
     void getEnrolledStudents_ReturnsListOfApprovedStudents() {
         // Arrange
         List<User> approvedUsers = Arrays.asList(approvedStudent);
-        when(userRepository.findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
+        when(userRepository.findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
             .thenReturn(approvedUsers);
 
         // Act
@@ -150,7 +150,7 @@ class AdminServiceTest {
         User student3 = createStudent(3L, "s3@test.com", "Student 3",
                                      User.RegistrationStatus.APPROVED, 8);
 
-        when(userRepository.findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
+        when(userRepository.findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
             .thenReturn(Arrays.asList(student1, student2, student3));
 
         // Act
@@ -171,7 +171,7 @@ class AdminServiceTest {
         User student2 = createStudent(2L, "s2@test.com", "Student 2",
                                      User.RegistrationStatus.APPROVED, 9);
 
-        when(userRepository.findByRoleAndStatus(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
+        when(userRepository.findByRoleAndStatusWithProfile(User.Role.STUDENT, User.RegistrationStatus.APPROVED))
             .thenReturn(Arrays.asList(student1, student2));
 
         // Act

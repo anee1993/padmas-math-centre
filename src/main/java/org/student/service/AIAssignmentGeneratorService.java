@@ -106,6 +106,20 @@ public class AIAssignmentGeneratorService {
             prompt.append("These should be comprehensive problems requiring multiple steps and detailed solutions.\n\n");
         }
         
+        // Inject PDF context if provided
+        if (request.getPdfContext() != null && !request.getPdfContext().isBlank()) {
+            // Limit to ~3000 chars to stay within token budget
+            String context = request.getPdfContext().length() > 3000
+                ? request.getPdfContext().substring(0, 3000) + "..."
+                : request.getPdfContext();
+            prompt.append("Reference Material (from uploaded textbook/chapter PDF):\n");
+            prompt.append("---\n");
+            prompt.append(context).append("\n");
+            prompt.append("---\n\n");
+            prompt.append("Use the above reference material as context to generate questions. ");
+            prompt.append("Base the questions on the concepts, examples, and terminology found in the reference material.\n\n");
+        }
+
         prompt.append("Important Guidelines:\n");
         prompt.append("1. All questions must be appropriate for Class ").append(request.getClassGrade()).append(" level\n");
         prompt.append("2. Questions should be clear, unambiguous, and properly formatted\n");
@@ -114,7 +128,7 @@ public class AIAssignmentGeneratorService {
         prompt.append("5. Difficulty should be: ").append(request.getComplexity()).append("\n");
         prompt.append("6. Number each question sequentially\n");
         prompt.append("7. Format the output as a clean, ready-to-use assignment\n\n");
-        
+
         prompt.append("Please generate the complete assignment now:");
         
         return prompt.toString();

@@ -1,6 +1,8 @@
 package org.student.controller;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +26,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/assignments")
 public class AssignmentController {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(AssignmentController.class);
+
     private final AssignmentService assignmentService;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
@@ -208,28 +212,43 @@ public class AssignmentController {
         }
     }
     
-    @PostMapping("/generate")
+    @PostMapping(value = "/generate", consumes = {"multipart/form-data", "application/json"})
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<Map<String, String>> generateAssignment(
-            @Valid @RequestBody GenerateAssignmentRequest request) {
-        
+            @RequestPart("data") @Valid GenerateAssignmentRequest request,
+            @RequestPart(value = "pdf", required = false) MultipartFile pdfFile) {
+
         try {
-            System.out.println("Generating assignment for topic: " + request.getTopic() + ", grade: " + request.getClassGrade());
+            // Extract text from PDF if provided
+            if (pdfFile != null && !pdfFile.isEmpty()) {
+                String pdfText = extractTextFromPdf(pdfFile);
+                request.setPdfContext(pdfText);
+                logger.info("PDF context extracted: {} chars", pdfText.length());
+            }
+
+            logger.info("Generating assignment for topic: {}, grade: {}", request.getTopic(), request.getClassGrade());
             String generatedAssignment = aiAssignmentGeneratorService.generateAssignment(request);
-            
+
             Map<String, String> response = new HashMap<>();
             response.put("content", generatedAssignment);
             response.put("topic", request.getTopic());
             response.put("classGrade", String.valueOf(request.getClassGrade()));
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
-            System.err.println("Error generating assignment: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error generating assignment: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
             error.put("error", "Failed to generate assignment: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    private String extractTextFromPdf(MultipartFile pdfFile) throws IOException {
+        try (org.apache.pdfbox.pdmodel.PDDocument doc =
+                     org.apache.pdfbox.Loader.loadPDF(pdfFile.getBytes())) {
+            org.apache.pdfbox.text.PDFTextStripper stripper = new org.apache.pdfbox.text.PDFTextStripper();
+            return stripper.getText(doc);
         }
     }
 }
